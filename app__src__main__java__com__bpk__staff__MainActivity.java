@@ -82,6 +82,7 @@ public class MainActivity extends Activity {
         });
 
         if (savedInstanceState != null) web.restoreState(savedInstanceState);
+        else if (prefs.contains("server")) web.loadUrl(serverBase().replaceAll("/+$", "") + "/staff/");
         else web.loadUrl("file:///android_asset/test.html");
     }
 

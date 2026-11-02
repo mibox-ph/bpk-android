@@ -32,6 +32,7 @@ label.p input{width:22px;min-height:0;margin:0}
     <input id="server" inputmode="url" autocapitalize="off" aria-label="Server address">
     <button id="btnSave">Save and check</button>
     <div id="mServer" class="msg"></div>
+    <button id="btnOpen" class="g">Open the BPK app</button>
   </div>
 
   <div class="card">
@@ -72,6 +73,11 @@ if (!N) {
     if (r !== "ok") { say("mServer", false, r); return; }
     say("mServer", true, "Checking...");
     N.checkServer($("server").value);
+  };
+  $("btnOpen").onclick = function(){
+    var r = N.setServer($("server").value);
+    if (r !== "ok") { say("mServer", false, r); return; }
+    location.href = $("server").value.replace(/\/+$/, "") + "/staff/";
   };
   $("btnFind").onclick = find;
   $("btnPrint").onclick = function(){

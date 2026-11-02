@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BPK hardware test</title>
+<style>
+:root{--navy:#12294a;--blue:#1d5fd0;--line:#cbd5e6;--mut:#5b6577}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,sans-serif;background:#f6f8fc;color:#1b2330;font-size:16px}
+header{background:var(--navy);color:#fff;padding:16px}
+header b{font-size:20px}
+main{padding:14px;max-width:640px;margin:0 auto}
+.card{background:#fff;border-radius:12px;padding:16px;margin-bottom:14px;box-shadow:0 1px 2px rgba(18,41,74,.1)}
+h2{margin:0 0 8px;font-size:18px}
+p{margin:6px 0;color:var(--mut);line-height:1.45}
+input,select{width:100%;min-height:48px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:16px;margin:6px 0}
+button{min-height:48px;padding:0 16px;border:0;border-radius:10px;background:var(--blue);color:#fff;font-weight:700;font-size:16px;margin:6px 6px 6px 0}
+button.g{background:#fff;color:var(--blue);border:1px solid var(--blue)}
+.msg{padding:10px 12px;border-radius:8px;margin-top:8px;display:none}
+.ok{background:#e5f3eb;color:#14532d;display:block}.err{background:#fdecea;color:#8c1d18;display:block}
+label.p{display:flex;gap:10px;align-items:center;min-height:48px;border:1px solid var(--line);border-radius:8px;padding:6px 10px;margin:6px 0;background:#fff}
+label.p input{width:22px;min-height:0;margin:0}
+</style>
+</head>
+<body>
+<header><b>BPK Staff app: hardware test</b><br><span style="color:#b9c8e4;font-size:14px">Version 0.1.0</span></header>
+<main>
+  <div class="card">
+    <h2>1. Server</h2>
+    <p>The address of your BPK server.</p>
+    <input id="server" inputmode="url" autocapitalize="off" aria-label="Server address">
+    <button id="btnSave">Save and check</button>
+    <div id="mServer" class="msg"></div>
+  </div>
+
+  <div class="card">
+    <h2>2. Printers</h2>
+    <p>First pair the printer in the Android Settings, in Bluetooth (the PIN is usually 0000 or 1234). Then press the button below.</p>
+    <button id="btnFind" class="g">Find paired printers</button>
+    <div id="list"></div>
+    <label for="paper">Paper width of the selected printer</label>
+    <select id="paper"><option value="57">57 mm (about 32 characters)</option><option value="80">80 mm (about 48 characters)</option></select>
+    <button id="btnPrint">Print a test slip</button>
+    <div id="mPrint" class="msg"></div>
+  </div>
+
+  <div class="card">
+    <h2>What to tell me</h2>
+    <p>Did the server check say "Connected"? Did each printer print a slip? Is the text complete (no cut-off words)? Did the line of numbers fit exactly on one line?</p>
+  </div>
+</main>
+<script>
+"use strict";
+var N = window.BPKNative;
+var selected = null;
+function $(id){ return document.getElementById(id); }
+function say(id, ok, text){ var e=$(id); e.className="msg "+(ok?"ok":"err"); e.textContent=text; }
+
+window.onNative = function(m){
+  if (m.type === "server") say("mServer", m.ok, m.message);
+  if (m.type === "print") say("mPrint", m.ok, m.message);
+  if (m.type === "permission") { say("mPrint", m.ok, m.message); if (m.ok) find(); }
+};
+
+if (!N) {
+  say("mServer", false, "This page must be opened inside the BPK Staff app.");
+} else {
+  $("server").value = N.getServer();
+  $("btnSave").onclick = function(){
+    var r = N.setServer($("server").value);
+    if (r !== "ok") { say("mServer", false, r); return; }
+    say("mServer", true, "Checking...");
+    N.checkServer($("server").value);
+  };
+  $("btnFind").onclick = find;
+  $("btnPrint").onclick = function(){
+    if (!selected) { say("mPrint", false, "Choose a printer first."); return; }
+    say("mPrint", true, "Printing...");
+    N.testPrint(selected, parseInt($("paper").value, 10), "Blue Platter Kitchenette");
+  };
+  N.checkServer("");
+}
+
+function find(){
+  if (!N) return;
+  if (N.needsPermission()) { N.requestPermission(); say("mPrint", true, "Please allow Bluetooth when Android asks."); return; }
+  var r = JSON.parse(N.listPrinters());
+  var box = $("list"); box.replaceChildren();
+  if (!r.ok) {
+    if (r.error === "permission") { N.requestPermission(); return; }
+    say("mPrint", false, r.error); return;
+  }
+  if (!r.printers.length) { say("mPrint", false, "No paired devices found. Pair the printer in Android Settings first."); return; }
+  $("mPrint").className = "msg";
+  r.printers.forEach(function(p){
+    var l = document.createElement("label"); l.className = "p";
+    var i = document.createElement("input"); i.type = "radio"; i.name = "pr"; i.value = p.address;
+    i.onchange = function(){ selected = p.address; };
+    l.append(i, document.createTextNode(p.name + "  (" + p.address + ")"));
+    box.appendChild(l);
+  });
+}
+</script>
+</body>
+</html>

@@ -379,6 +379,53 @@ public class MainActivity extends Activity {
             }).start();
         }
 
+        // Prints a document made by the server. The result goes back to the page as a "printjob" event: message = id|error
+        @JavascriptInterface
+        public void printDoc(final String jobId, final String address, final int paperMm, final String json) {
+            if (!trustedCaller()) return;
+            if (jobId == null || !jobId.matches("^[0-9]+$")) return;
+            if (address == null || !address.matches("^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$")) {
+                emit("printjob", false, jobId + "|invalid printer address");
+                return;
+            }
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        EscPos p = new EscPos(paperMm >= 80 ? 80 : 57);
+                        JSONArray ops = new JSONArray(json);
+                        for (int i = 0; i < ops.length(); i++) {
+                            JSONObject o = ops.getJSONObject(i);
+                            String t = o.optString("t");
+                            if (t.equals("c") || t.equals("l")) {
+                                int size = o.optInt("z", 0);
+                                int cols = (size == 0x11 || size == 0x10) ? p.cols / 2 : p.cols;
+                                p.align(t.equals("c") ? 1 : 0).bold(o.optInt("b", 0) == 1).size(size);
+                                for (String ln : EscPos.wrap(o.optString("s"), cols)) p.line(ln);
+                                p.size(0).bold(false).align(0);
+                            } else if (t.equals("lr")) {
+                                p.align(0).bold(o.optInt("b", 0) == 1).lr(o.optString("l"), o.optString("r")).bold(false);
+                            } else if (t.equals("rule")) {
+                                String c = o.optString("c", "-");
+                                p.align(0).rule(c.length() > 0 ? c.charAt(0) : '-');
+                            } else if (t.equals("feed")) {
+                                p.feed(Math.min(10, o.optInt("n", 1)));
+                            } else if (t.equals("cut")) {
+                                p.cut();
+                            }
+                        }
+                        sendToPrinter(address.toUpperCase(Locale.US), p.bytes());
+                        emit("printjob", true, jobId + "|");
+                    } catch (SecurityException e) {
+                        emit("printjob", false, jobId + "|Bluetooth permission is missing");
+                    } catch (Exception e) {
+                        String m = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
+                        emit("printjob", false, jobId + "|Printer not reachable: " + m.replace('|', ' '));
+                    }
+                }
+            }).start();
+        }
+
         @JavascriptInterface
         public void checkServer(final String url) {
             if (!trustedCaller()) return;

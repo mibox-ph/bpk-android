@@ -56,6 +56,22 @@ final class EscPos {
         return line(sb.toString());
     }
 
+    /** Splits text into lines that fit the paper width. */
+    static java.util.List<String> wrap(String s, int width) {
+        java.util.List<String> lines = new java.util.ArrayList<>();
+        s = ascii(s);
+        for (String para : s.split("\n", -1)) {
+            while (para.length() > width) {
+                int cut = para.lastIndexOf(' ', width);
+                if (cut <= 0) cut = width;
+                lines.add(para.substring(0, cut));
+                para = para.substring(cut).trim();
+            }
+            lines.add(para);
+        }
+        return lines;
+    }
+
     byte[] bytes() { return out.toByteArray(); }
 
     /** Printers print basic ASCII reliably, so other characters are replaced. */

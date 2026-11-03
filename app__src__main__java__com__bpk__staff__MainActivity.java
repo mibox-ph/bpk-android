@@ -5,15 +5,22 @@ import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.telephony.SmsManager;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
+import android.webkit.PermissionRequest;
+import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -28,6 +35,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Set;
@@ -41,6 +49,9 @@ public class MainActivity extends Activity {
     private WebView web;
     private SharedPreferences prefs;
     private volatile String currentUrl = "";
+    private PermissionRequest pendingMic;
+    private static final int REQ_MIC = 77;
+    private static final int REQ_SMS = 78;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,10 +66,25 @@ public class MainActivity extends Activity {
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
         s.setAllowFileAccess(false);
+        s.setMediaPlaybackRequiresUserGesture(false);
         s.setAllowContentAccess(false);
         s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
 
         web.addJavascriptInterface(new Bridge(), "BPKNative");
+        web.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public void onPermissionRequest(final PermissionRequest req) {
+                runOnUiThread(() -> {
+                    if (!isTrusted(Uri.parse(req.getOrigin().toString()))) { req.deny(); return; }
+                    if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                        req.grant(new String[]{PermissionRequest.RESOURCE_AUDIO_CAPTURE});
+                    } else {
+                        pendingMic = req;
+                        requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, REQ_MIC);
+                    }
+                });
+            }
+        });
         web.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest r) {
@@ -101,6 +127,18 @@ public class MainActivity extends Activity {
     @Override
     public void onRequestPermissionsResult(int code, String[] perms, int[] results) {
         super.onRequestPermissionsResult(code, perms, results);
+        if (code == REQ_SMS) {
+            emit("sms_permission", results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED, "");
+            return;
+        }
+        if (code == REQ_MIC) {
+            boolean granted = results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED;
+            if (pendingMic != null) {
+                if (granted) pendingMic.grant(new String[]{PermissionRequest.RESOURCE_AUDIO_CAPTURE}); else pendingMic.deny();
+                pendingMic = null;
+            }
+            return;
+        }
         boolean ok = results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED;
         emit("permission", ok, ok ? "Bluetooth permission granted." : "Bluetooth permission was not granted.");
     }
@@ -175,6 +213,42 @@ public class MainActivity extends Activity {
         }
     }
 
+    // Sends one text message. The result comes back to the page as an "sms" event: message = id|error
+    private void sendSmsNow(final String id, String phone, String body) {
+        try {
+            SmsManager sm = Build.VERSION.SDK_INT >= 31 ? getSystemService(SmsManager.class) : SmsManager.getDefault();
+            ArrayList<String> parts = sm.divideMessage(body);
+            final int total = parts.size();
+            final String action = "com.bpk.staff.SMS_SENT_" + id + "_" + System.nanoTime();
+            final int[] done = {0};
+            final boolean[] bad = {false};
+            final BroadcastReceiver rec = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context c, Intent i) {
+                    if (getResultCode() != Activity.RESULT_OK) bad[0] = true;
+                    done[0]++;
+                    if (done[0] >= total) {
+                        try { unregisterReceiver(this); } catch (Exception ignored) { }
+                        emit("sms", !bad[0], id + "|" + (bad[0] ? "the phone could not send it" : ""));
+                    }
+                }
+            };
+            if (Build.VERSION.SDK_INT >= 33) registerReceiver(rec, new IntentFilter(action), Context.RECEIVER_NOT_EXPORTED);
+            else registerReceiver(rec, new IntentFilter(action));
+            ArrayList<PendingIntent> sent = new ArrayList<>();
+            for (int i = 0; i < total; i++) {
+                Intent in = new Intent(action);
+                in.setPackage(getPackageName());
+                sent.add(PendingIntent.getBroadcast(this, i, in, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT));
+            }
+            sm.sendMultipartTextMessage(phone, null, parts, sent, null);
+        } catch (SecurityException e) {
+            emit("sms", false, id + "|text permission missing");
+        } catch (Exception e) {
+            emit("sms", false, id + "|" + (e.getMessage() == null ? "error" : e.getMessage()));
+        }
+    }
+
     // ---- bridge exposed to the web pages -------------------------------
 
     private final class Bridge {
@@ -191,6 +265,33 @@ public class MainActivity extends Activity {
             if (!u.matches("^https://[A-Za-z0-9.-]+(:[0-9]+)?$")) return "Use an address like https://mybpk.com";
             prefs.edit().putString("server", u).apply();
             return "ok";
+        }
+
+        @JavascriptInterface
+        public boolean smsReady() {
+            return trustedCaller() && checkSelfPermission(Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED;
+        }
+
+        @JavascriptInterface
+        public void smsRequest() {
+            if (!trustedCaller()) return;
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() { requestPermissions(new String[]{Manifest.permission.SEND_SMS}, REQ_SMS); }
+            });
+        }
+
+        @JavascriptInterface
+        public void sendSms(final String id, final String phone, final String body) {
+            if (!trustedCaller()) return;
+            if (phone == null || !phone.matches("^\\+?[0-9]{10,13}$") || body == null || body.length() == 0 || body.length() > 600 || id == null || !id.matches("^[0-9]+$")) {
+                emit("sms", false, id + "|invalid message");
+                return;
+            }
+            new Thread(new Runnable() {
+                @Override
+                public void run() { sendSmsNow(id, phone, body); }
+            }).start();
         }
 
         @JavascriptInterface

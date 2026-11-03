@@ -166,6 +166,15 @@ public class MainActivity extends Activity {
         return isTrusted(Uri.parse(currentUrl));
     }
 
+    private void askBt() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (Build.VERSION.SDK_INT >= 31 && !hasBtPermission()) requestPermissions(new String[]{Manifest.permission.BLUETOOTH_CONNECT}, 1);
+            }
+        });
+    }
+
     private boolean hasBtPermission() {
         return Build.VERSION.SDK_INT < 31
                 || checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED;
@@ -370,7 +379,7 @@ public class MainActivity extends Activity {
                         sendToPrinter(address.toUpperCase(Locale.US), p.bytes());
                         emit("print", true, "Test slip sent. Check the printer.");
                     } catch (SecurityException e) {
-                        emit("print", false, "Bluetooth permission is missing.");
+                        askBt(); emit("print", false, "Bluetooth permission is missing. Tap Allow on the Nearby devices question, then try again. If no question appears: Android Settings > Apps > BPK Staff > Permissions > Nearby devices > Allow.");
                     } catch (Exception e) {
                         String m = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
                         emit("print", false, "Could not print: " + m);
@@ -417,7 +426,7 @@ public class MainActivity extends Activity {
                         sendToPrinter(address.toUpperCase(Locale.US), p.bytes());
                         emit("printjob", true, jobId + "|");
                     } catch (SecurityException e) {
-                        emit("printjob", false, jobId + "|Bluetooth permission is missing");
+                        askBt(); emit("printjob", false, jobId + "|Bluetooth permission is missing");
                     } catch (Exception e) {
                         String m = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
                         emit("printjob", false, jobId + "|Printer not reachable: " + m.replace('|', ' '));

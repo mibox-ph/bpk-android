@@ -76,12 +76,14 @@ public class MainActivity extends Activity {
             public void onPermissionRequest(final PermissionRequest req) {
                 runOnUiThread(() -> {
                     if (!isTrusted(Uri.parse(req.getOrigin().toString()))) { req.deny(); return; }
-                    if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
-                        req.grant(new String[]{PermissionRequest.RESOURCE_AUDIO_CAPTURE});
-                    } else {
-                        pendingMic = req;
-                        requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, REQ_MIC);
+                    java.util.ArrayList<String> need = new java.util.ArrayList<>();
+                    for (String r : req.getResources()) {
+                        if (PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(r) && checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) need.add(Manifest.permission.RECORD_AUDIO);
+                        if (PermissionRequest.RESOURCE_VIDEO_CAPTURE.equals(r) && checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) need.add(Manifest.permission.CAMERA);
                     }
+                    if (need.isEmpty()) { req.grant(req.getResources()); return; }
+                    pendingMic = req;
+                    requestPermissions(need.toArray(new String[0]), REQ_MIC);
                 });
             }
         });
@@ -132,9 +134,10 @@ public class MainActivity extends Activity {
             return;
         }
         if (code == REQ_MIC) {
-            boolean granted = results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED;
+            boolean granted = results.length > 0;
+            for (int r : results) if (r != PackageManager.PERMISSION_GRANTED) granted = false;
             if (pendingMic != null) {
-                if (granted) pendingMic.grant(new String[]{PermissionRequest.RESOURCE_AUDIO_CAPTURE}); else pendingMic.deny();
+                if (granted) pendingMic.grant(pendingMic.getResources()); else pendingMic.deny();
                 pendingMic = null;
             }
             return;

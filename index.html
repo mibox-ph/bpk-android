@@ -1,0 +1,1035 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>BPK Staff</title>
+<style>
+:root{--bg:#f3f6fb;--card:#fff;--ink:#1b2330;--mute:#5b6577;--line:#d9e1ee;--blue:#1d5fd0;--blue2:#e6eefb;--green:#1f9d55;--green2:#e3f5ea;--yellow:#f2c200;--orange:#f08a00;--red:#d93025;--red2:#fdecea}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:16px;overflow:hidden}
+body.kitchen{background:#10151d;color:#eef2f8}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px;min-height:48px;padding:0 16px;background:var(--blue);color:#fff;font-weight:700}
+button.sec{background:var(--blue2);color:var(--blue)}
+button.gray{background:#e8ecf3;color:var(--ink)}
+button.red{background:var(--red)}
+button.green{background:var(--green)}
+button:disabled{opacity:.45}
+input,textarea{font:inherit;width:100%;min-height:48px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+#app{height:100%;display:flex;flex-direction:column}
+.top{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#12294a;color:#fff;flex:none}
+.top b{font-size:18px}.top .sp{flex:1}
+.top button{min-height:40px;padding:0 12px;background:#274b82;font-size:14px}
+.top button.on{background:#fff;color:#12294a}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--green)}.dot.off{background:var(--red)}
+.main{flex:1;overflow:auto;padding:12px}
+.pad{max-width:420px;margin:0 auto}
+.login h1{text-align:center;margin:18px 0 4px}.login p{text-align:center;color:var(--mute);margin:0 0 16px}
+.names{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.names button{min-height:64px;background:#fff;color:var(--ink);border:2px solid var(--line);font-size:18px}
+.names button small{display:block;font-weight:400;color:var(--mute);font-size:12px}
+.dots{display:flex;justify-content:center;gap:12px;margin:14px 0;min-height:20px}
+.dots i{width:16px;height:16px;border-radius:50%;background:var(--line)}.dots i.f{background:var(--blue)}
+.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.keys button{min-height:62px;font-size:24px;background:#fff;color:var(--ink);border:1px solid var(--line)}
+.err{color:var(--red);text-align:center;min-height:22px;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px}
+.tb{background:var(--card);border:2px solid var(--line);border-radius:14px;min-height:96px;padding:8px;text-align:center;color:var(--ink);display:flex;flex-direction:column;justify-content:center;gap:2px}
+.tb .n{font-size:30px;font-weight:800}.tb small{color:var(--mute)}
+.tb.busy{background:var(--blue2);border-color:#9db9ea}
+.tb.mine{border-color:var(--blue)}
+.tb.ready{background:var(--green2);border-color:var(--green);animation:pulse 1s infinite}
+.tb.bill{border-color:var(--yellow)}
+.tag{display:inline-block;border-radius:6px;padding:1px 7px;font-size:12px;font-weight:800;color:#fff;background:var(--green)}
+.tag.y{background:#b58900}.tag.r{background:var(--red)}.tag.b{background:var(--blue)}.tag.g{background:#6b7588}
+@keyframes pulse{50%{box-shadow:0 0 0 6px rgba(31,157,85,.25)}}
+@keyframes blink{50%{opacity:.35}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+.row{display:flex;align-items:center;gap:8px}.row .sp{flex:1}
+.h2{font-size:18px;font-weight:800;margin:0}
+.mute{color:var(--mute)}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.btns button{flex:1;min-width:120px}
+.line{padding:8px 0;border-top:1px solid var(--line)}.line:first-child{border-top:0}
+.line.void{opacity:.55;text-decoration:line-through}
+.sub{font-size:13px;color:var(--mute)}
+/* compose */
+.cmp{display:grid;grid-template-columns:120px 1fr;height:100%;gap:0}
+.rail{overflow:auto;background:#fff;border-right:1px solid var(--line)}
+.rail button{display:block;width:100%;min-height:56px;border-radius:0;background:#fff;color:var(--ink);text-align:left;font-size:14px;padding:6px 10px;border-bottom:1px solid var(--line);font-weight:600}
+.rail button.on{background:var(--blue);color:#fff}
+.mid{display:grid;grid-template-columns:1fr;grid-template-rows:auto 1fr;overflow:hidden;min-width:0}
+.items{overflow:auto;padding:8px}
+.it{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:#fff;color:var(--ink);border:1px solid var(--line);margin-bottom:8px;min-height:60px;border-radius:12px;padding:8px 12px;font-weight:600}
+.it .p{margin-left:auto;color:var(--blue);white-space:nowrap}
+.it.out{opacity:.45}
+.cmpwrap{display:grid;grid-template-columns:1fr;height:100%;position:relative}
+@media(min-width:900px){.cmpwrap{grid-template-columns:1fr 330px}.cartbtn{display:none}.cart{position:static!important;transform:none!important}}
+.cart{position:absolute;inset:0;background:#fff;z-index:5;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .2s;border-left:1px solid var(--line)}
+.cart.open{transform:none}
+.cart .body{flex:1;overflow:auto;padding:10px}
+.cart .foot{padding:10px;border-top:1px solid var(--line)}
+.cartbtn{position:absolute;left:130px;right:10px;bottom:10px;z-index:4;min-height:54px;font-size:17px}
+.qty{display:flex;align-items:center;gap:6px}
+.qty button{min-width:44px;padding:0;background:#e8ecf3;color:var(--ink);font-size:22px}
+.qty span{min-width:28px;text-align:center;font-weight:800;font-size:18px}
+.chk{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.chk label{flex:1;min-width:100px;border:2px solid var(--line);border-radius:10px;padding:10px;text-align:center;font-weight:700;background:#fff}
+.chk input{display:none}.chk input:checked+span{color:var(--red)}
+.chk label:has(input:checked){border-color:var(--red);background:var(--red2)}
+.vopt{display:flex;align-items:center;gap:10px;border:2px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px;background:#fff;font-weight:600}
+.vopt:has(input:checked){border-color:var(--blue);background:var(--blue2)}
+.vopt input{width:20px;min-height:20px;flex:none}
+#modal{position:fixed;inset:0;z-index:50;display:none;background:rgba(10,20,40,.55);align-items:center;justify-content:center;padding:12px}
+#modal.show{display:flex}
+.sheet{background:#fff;color:var(--ink);border-radius:16px;max-width:520px;width:100%;max-height:92vh;overflow:auto;padding:16px}
+#alerts{position:fixed;left:0;right:0;top:0;z-index:40;pointer-events:none}
+#alerts>*{pointer-events:auto}
+.banner{margin:6px;padding:12px;border-radius:12px;background:var(--green);color:#fff;display:flex;gap:10px;align-items:center;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.banner b{font-size:17px}.banner .sp{flex:1}
+.banner button{background:#fff;color:var(--green)}
+.svc{position:fixed;inset:0;z-index:60;background:var(--red);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;animation:blink 1s infinite;text-align:center;padding:20px}
+.svc h1{font-size:64px;margin:0}.svc button{background:#fff;color:var(--red);font-size:24px;min-height:72px;padding:0 40px}
+#toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:70;background:#1b2330;color:#fff;padding:12px 18px;border-radius:12px;display:none;max-width:90%;text-align:center}
+/* kitchen */
+.kb{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;align-items:start}
+.tk{background:#1b2431;border-radius:14px;border-top:10px solid var(--green);padding:10px;color:#eef2f8}
+.tk.c-y{border-top-color:var(--yellow)}.tk.c-o{border-top-color:var(--orange)}.tk.c-r{border-top-color:var(--red)}
+.tk.blink{animation:blink 1s infinite}
+.tk.rdy{border-top-color:#5b6b85;opacity:.7}
+.tk .hd{display:flex;align-items:baseline;gap:8px}.tk .hd b{font-size:26px}.tk .tm{margin-left:auto;font-size:24px;font-weight:800;font-variant-numeric:tabular-nums}
+.tk .li{padding:6px 0;border-top:1px solid #2c3a4f;font-size:18px}
+.tk .li small{display:block;color:#aeb9cc;font-size:14px}
+.tk button{width:100%;margin-top:8px;min-height:54px}
+.vb{background:var(--red);color:#fff;border-radius:12px;padding:10px 12px;margin-bottom:10px;display:flex;gap:10px;align-items:center}
+.vb .sp{flex:1}.vb button{background:#fff;color:var(--red);min-height:44px}
+.kt{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.kt .sp{flex:1}
+.svbtn{background:#f08a00;font-size:20px;min-height:56px}
+#pttbar{position:fixed;right:12px;bottom:84px;z-index:30;display:none;flex-direction:column;gap:10px;align-items:flex-end}
+#pttbar button{border-radius:50%;width:72px;height:72px;min-height:72px;padding:0;font-size:30px;box-shadow:0 4px 14px rgba(0,0,0,.35);touch-action:none;user-select:none;-webkit-user-select:none}
+#pttbar .quick{width:52px;height:52px;min-height:52px;font-size:22px;background:#274b82}
+#pttbar .mic{background:#d93025}
+#pttbar .mic.rec{background:#7a0f0a;animation:blink 1s infinite}
+#pttbar .lbl{background:#12294a;color:#fff;border-radius:10px;padding:4px 10px;font-size:13px;display:none}
+#recov{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);z-index:45;background:#12294aee;color:#fff;border-radius:16px;padding:18px 22px;text-align:center;display:none;min-width:240px}
+#recov b{font-size:34px;display:block;font-variant-numeric:tabular-nums}
+#vmsg{position:fixed;left:8px;right:96px;bottom:84px;z-index:35;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+#vmsg>div{pointer-events:auto;background:#fff;color:var(--ink);border-radius:12px;padding:10px 12px;box-shadow:0 4px 16px rgba(0,0,0,.35);display:flex;gap:10px;align-items:center;border-left:8px solid var(--blue);max-width:460px}
+#vmsg button{min-height:40px;padding:0 12px}
+/* ---- revision 24 ---- */
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;align-items:start}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:4px;margin:0}
+.tile.bill{border:2px solid var(--yellow)}
+.tile .tt{display:flex;align-items:center;gap:6px}.tile .tt b{font-size:16px;line-height:1.2;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tile .its{font-size:13px;color:var(--mute);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:34px}
+.tile .btns{margin-top:6px;gap:6px}.tile .btns button{min-height:40px;min-width:0;font-size:14px;padding:0 8px}
+.tile .line{padding:3px 0;font-size:14px}
+.tg{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+.tb2{border:3px solid rgba(0,0,0,.18);border-radius:16px;min-height:140px;padding:10px;color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px;text-align:center}
+.tb2 .n{font-size:44px;font-weight:800;line-height:1}.tb2 .w{font-size:13px;font-weight:800;letter-spacing:1px}.tb2 small{font-size:13px;opacity:.95}
+.tb2.free{background:#1f9d55}.tb2.occ{background:#d93025}.tb2.rsv{background:#f2c200;color:#3b2f00}.tb2.adv{background:#f08a00}
+.tb2.mine{outline:4px solid var(--blue);outline-offset:2px}.tb2.ready{animation:pulse 1s infinite}
+.tb2 .tag{background:rgba(0,0,0,.35)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;font-size:13px}.legend i{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:4px}
+.rail{display:flex;flex-direction:column;overflow:hidden;width:150px}
+.rail button{flex:1 1 0;min-height:30px;padding:2px 10px;font-size:clamp(11px,1.7vh,15px);display:flex;align-items:center}
+.cmp{grid-template-columns:150px 1fr;grid-template-rows:minmax(0,1fr)}.mid{min-height:0}.cmpwrap{grid-template-rows:minmax(0,1fr)}
+.items{grid-auto-rows:max-content;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;align-content:start}
+.it{flex-direction:column;align-items:stretch;gap:0;padding:0;margin:0;min-height:0;overflow:hidden;position:relative;text-align:left}
+.it img,.it .ph{width:100%;aspect-ratio:4/3;object-fit:cover;background:#e8ecf3;display:flex;align-items:center;justify-content:center;color:var(--mute);font-size:12px;font-weight:400}
+.it .nm{padding:6px 8px 0;font-size:14px;line-height:1.25}.it .p{margin:0;padding:0 8px 8px;font-size:15px}
+.it .bd{position:absolute;top:6px;left:6px}
+@media(min-width:900px){.cmpwrap{grid-template-columns:1fr 420px}}
+.cartbtn{left:160px}
+.kb{grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.tk{padding:8px;border-top-width:8px}.tk .hd b{font-size:19px;white-space:nowrap}.tk .tm{font-size:20px}.tk .li{font-size:15px;padding:4px 0}.tk .li small{font-size:12px}
+.tk button{min-height:58px;font-size:19px;margin-top:6px}
+.kt button,.svbtn{min-height:40px;font-size:14px;padding:0 12px}
+.vb{padding:6px 10px;font-size:14px;margin-bottom:6px}.vb button{min-height:36px}
+.pstrip{background:var(--red);color:#fff;border-radius:10px;padding:6px 10px;margin-bottom:8px;display:flex;gap:10px;align-items:center;font-size:14px;font-weight:600}
+.pstrip .sp{flex:1}.pstrip button{background:#fff;color:var(--red);min-height:34px;padding:0 12px}
+/* bill */
+.bl2{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start}
+@media(max-width:760px){.bl2{grid-template-columns:1fr}}
+.bl2 .col{min-width:0}
+.pin-foot{position:sticky;bottom:0;background:#fff;padding:8px 0 2px;margin-top:8px;border-top:1px solid var(--line)}
+.bill-total{font-size:30px;font-weight:800}
+.chg{font-size:28px;font-weight:800;color:var(--green)}
+.sel2{display:flex;gap:8px;align-items:center;margin:6px 0}.sel2 label{flex:1;font-size:13px;color:var(--mute)}
+select{font:inherit;min-height:48px;border:1px solid var(--line);border-radius:10px;padding:0 10px;background:#fff;color:var(--ink);width:100%}
+.pin3{display:flex;gap:8px}.pin3>*{flex:1;min-width:0}
+</style></head>
+<body>
+<div id="app"></div><div id="pttbar"></div><div id="recov"></div><div id="vmsg"></div><div id="alerts"></div><div id="modal"></div><div id="toast"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script>
+'use strict';
+const API = '../api/';
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const peso = n => '₱' + Number(n || 0).toLocaleString('en-PH');
+function ls(k, v) {
+  try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { return null; }
+}
+function jparse(s) { try { return JSON.parse(s); } catch (e) { return null; } }
+
+const S = { token: ls('bpk_token'), user: jparse(ls('bpk_user')), menu: null, tab: null, view: 'login',
+  tables: [], order: null, cmp: null, online: true, timers: [15, 25, 35, 45], busy: {} };
+
+async function api(path, method, body) {
+  method = method || 'GET';
+  try {
+    const r = await fetch(API + path, { method, headers: Object.assign({ 'Content-Type': 'application/json' }, S.token ? { Authorization: 'Bearer ' + S.token } : {}), body: body ? JSON.stringify(body) : undefined });
+    let d = {}; try { d = await r.json(); } catch (e) {}
+    setOnline(true);
+    if (r.status === 401 && S.token) { doLogout(true); }
+    return { ok: r.ok, status: r.status, data: d };
+  } catch (e) { setOnline(false); return { ok: false, status: 0, data: { error: 'network' } }; }
+}
+function setOnline(v) { if (S.online !== v) { S.online = v; const d = $('.dot'); if (d) d.className = 'dot' + (v ? '' : ' off'); } }
+function toast(t, ms) { const e = $('#toast'); e.textContent = t; e.style.display = 'block'; clearTimeout(toast.t); toast.t = setTimeout(() => e.style.display = 'none', ms || 2600); }
+function modal(html) { const m = $('#modal'); m.innerHTML = '<div class="sheet">' + html + '</div>'; m.classList.add('show'); }
+function closeModal() { const m = $('#modal'); m.classList.remove('show'); m.innerHTML = ''; }
+$('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+
+// ---------- sound / vibration / screen on ----------
+let AC;
+function unlock() { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); } catch (e) {} }
+function tone(f, d, when, vol, type) {
+  if (!AC) return;
+  const o = AC.createOscillator(), g = AC.createGain(); o.type = type || 'sine'; o.frequency.value = f;
+  o.connect(g); g.connect(AC.destination); const t = AC.currentTime + (when || 0);
+  g.gain.setValueAtTime(vol || .3, t); g.gain.exponentialRampToValueAtTime(.001, t + d); o.start(t); o.stop(t + d + .03);
+}
+function buzz(p) { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} }
+function chime() { tone(880, .25, 0); tone(1175, .4, .28); buzz([200, 100, 200]); }
+function ding() { tone(660, .2, 0, .25); buzz(120); }
+function siren() { for (let i = 0; i < 3; i++) { tone(950, .18, i * .4, .5, 'square'); tone(650, .18, i * .4 + .2, .5, 'square'); } buzz([400, 150, 400]); }
+document.addEventListener('pointerdown', unlock);
+let wake;
+async function keepAwake() { try { if (navigator.wakeLock && S.token) wake = await navigator.wakeLock.request('screen'); } catch (e) {} }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') keepAwake(); });
+
+// ---------- login ----------
+async function showLogin() {
+  S.view = 'login'; document.body.className = '';
+  $('#app').innerHTML = '<div class="main"><div class="pad login"><h1>Blue Platter Kitchenette</h1><p>Who are you?</p><div class="names" id="names"><p class="mute">Loading…</p></div><p style="margin-top:24px"><a href="../admin/">Owner / admin login</a></p></div></div>';
+  const r = await api('staff-names');
+  if (!r.ok) { $('#names').innerHTML = '<p class="err">Cannot reach the server. Check the internet.</p><button data-act="relogin">Try again</button>'; return; }
+  S.names = r.data.staff;
+  $('#names').innerHTML = S.names.map(s => `<button data-act="pick" data-id="${s.id}">${esc(s.name)}<small>${esc(s.role)}</small></button>`).join('');
+}
+function showPin(id) {
+  const s = S.names.find(x => x.id == id); S.pin = ''; S.pickId = id;
+  $('#app').innerHTML = `<div class="main"><div class="pad login"><h1>${esc(s.name)}</h1><p>Enter your PIN</p><div class="dots" id="dots"></div><div class="err" id="perr"></div>
+  <div class="keys">${[1,2,3,4,5,6,7,8,9].map(n => `<button data-act="key" data-k="${n}">${n}</button>`).join('')}<button data-act="relogin" class="gray" style="font-size:16px">Back</button><button data-act="key" data-k="0">0</button><button data-act="key" data-k="del" class="gray">⌫</button></div>
+  <button data-act="pinok" style="width:100%;margin-top:12px;min-height:56px">OK</button></div></div>`;
+  drawDots();
+}
+function drawDots() { const d = $('#dots'); if (d) d.innerHTML = Array.from({ length: 6 }, (_, i) => `<i class="${i < S.pin.length ? 'f' : ''}"></i>`).join(''); }
+async function submitPin() {
+  if (S.pin.length < 4) return;
+  const r = await api('login', 'POST', { staff_id: S.pickId, secret: S.pin, device: (navigator.userAgent || '').slice(0, 60) });
+  if (!r.ok) { S.pin = ''; drawDots(); const e = $('#perr'); if (e) e.textContent = r.status === 0 ? 'No connection.' : (r.status === 429 ? 'Too many tries. Wait 10 minutes.' : r.status === 401 ? 'Wrong PIN.' : 'Server problem (' + r.status + '). Tell Mark.'); return; }
+  S.token = r.data.token; S.user = r.data.user; ls('bpk_token', S.token); ls('bpk_user', JSON.stringify(S.user));
+  startApp();
+}
+function doLogout(silent) {
+  if (!silent && S.token) api('logout', 'POST');
+  S.token = null; S.user = null; ls('bpk_token', null); ls('bpk_user', null);
+  stopSiren(); $('#alerts').innerHTML = ''; $('#vmsg').innerHTML = ''; $('#pttbar').style.display = 'none'; PTT.last = null; closeModal(); showLogin();
+}
+
+// ---------- app shell ----------
+const TABS = { waiter: [['tables', 'Tables'], ['takeout', 'Take-out / Delivery'], ['reservations', 'Reservations']], cashier: [['cashier', 'Orders'], ['online', 'Online'], ['tables', 'Tables'], ['takeout', 'Take-out'], ['reservations', 'Reservations'], ['members', 'Members'], ['today', 'Today']], kitchen: [['kitchen', 'Kitchen']],
+  admin: [['tables', 'Tables'], ['takeout', 'Take-out'], ['kitchen', 'Kitchen'], ['cashier', 'Orders'], ['online', 'Online'], ['reservations', 'Reservations'], ['members', 'Members'], ['today', 'Today']] };
+async function startApp() {
+  keepAwake(); initPtt();
+  const m = await api('menu'); if (m.ok) S.menu = m.data;
+  const g = await api('group-meals'); if (g.ok) S.group = g.data;
+  const tabs = TABS[S.user.role] || TABS.waiter;
+  setTab(tabs[0][0]);
+}
+function shell(inner) {
+  const tabs = TABS[S.user.role] || [];
+  $('#app').innerHTML = `<div class="top"><b>BPK</b><span class="dot ${S.online ? '' : 'off'}"></span>${tabs.length > 1 ? tabs.map(t => `<button data-act="tab" data-t="${t[0]}" class="${S.tab === t[0] ? 'on' : ''}">${t[1]}</button>`).join('') : ''}<span class="sp"></span>${window.BPKNative ? '<button data-act="prsetup">Printers</button>' : ''}${window.BPKNative && ['cashier', 'admin'].includes(S.user.role) ? `<button data-act="smstoggle" class="${smsOn() ? '' : 'gray'}">Texts: ${smsOn() ? 'ON' : 'OFF'}</button>` : ''}${S.user.role === 'admin' ? '<a href="../admin/" style="color:#fff;font-size:14px">Admin</a>' : ''}<span style="font-size:14px">${esc(S.user.name)}</span><button data-act="logout">Log out</button></div><div id="pbanner"></div><div class="main" id="main">${inner}</div>`;
+}
+function setTab(t) {
+  vStop();
+  S.tab = t; S.view = t; document.body.className = t === 'kitchen' ? 'kitchen' : '';
+  if (t === 'tables') { shell('<div style="margin-bottom:10px"><button class="sec" data-act="scanvoucher">📷 Scan member voucher</button></div><div class="grid" id="tg"></div>'); renderTables(); pollTables(); }
+  else if (t === 'takeout') { shell('<button data-act="newtk" style="width:100%">+ New take-out / delivery order</button><div id="tkl" style="margin-top:12px"></div>'); pollTakeout(); }
+  else if (t === 'kitchen') { shell('<div class="kt"><b style="font-size:20px">Kitchen</b><span id="svst" class="sub"></span><span class="sp"></span><button class="gray" data-act="stockmodal">Out of stock</button><button class="svbtn" data-act="service">🔔 SERVICE</button></div><div id="vb"></div><div class="kb" id="kb"></div>'); S.kseen = null; pollKitchen(); }
+  else if (t === 'cashier') { shell('<div id="col"></div>'); pollCashier(); }
+  else if (t === 'online') { shell('<div id="onl"></div>'); pollOnline(); }
+  else if (t === 'reservations') { shell('<button data-act="newres" style="width:100%">+ New reservation</button><div id="resl" style="margin-top:12px"></div>'); loadRes(); }
+  else if (t === 'members') { shell(`<div class="card"><b>Scan or type the member's voucher code</b><div class="row" style="margin-top:8px"><input id="vc" placeholder="5-character code under the QR" autocapitalize="characters" style="text-transform:uppercase"><button data-act="vresolve">Check</button></div><div class="btns"><button class="sec" data-act="vscan">📷 Scan the QR code</button></div><video id="vvid" playsinline style="display:none;width:100%;border-radius:12px;margin-top:8px"></video><div id="vres"></div></div>
+    <div class="card"><b>Find a member</b><div class="row" style="margin-top:8px"><input id="mq" placeholder="Name or mobile number (3 letters or more)"><button data-act="msearch">Search</button></div><div id="mres"></div></div>`); }
+  else if (t === 'today') { shell('<div id="tdy"></div>'); loadToday(); }
+}
+
+// ---------- waiter: tables ----------
+async function pollTables() {
+  if (S.view !== 'tables' || S.busy.t) return; S.busy.t = 1;
+  const r = await api('table-status'); S.busy.t = 0;
+  if (r.ok && S.view === 'tables') { S.tables = r.data.tables; renderTables(); }
+}
+function renderTables() {
+  const g = $('#tg'); if (!g) return;
+  g.className = 'tg';
+  const lg = '<div class="legend" style="grid-column:1/-1"><span><i style="background:#1f9d55"></i>Vacant</span><span><i style="background:#d93025"></i>Taken</span><span><i style="background:#f2c200"></i>Reserved</span><span><i style="background:#f08a00"></i>Reserved + advance order</span></div>';
+  g.innerHTML = lg + S.tables.map(t => {
+    const busy = !!t.order_id, mine = busy && t.waiter_id == S.user.id, rdy = t.ready_count > 0, rv = !busy && t.reserved;
+    const cls = busy ? 'occ' : rv ? (rv.advance ? 'adv' : 'rsv') : 'free';
+    const word = busy ? 'TAKEN' : rv ? (rv.advance ? 'RESERVED + ORDER' : 'RESERVED') : 'VACANT';
+    const sm = busy ? esc(t.waiter_name || '') + (t.minutes != null ? ' · ' + t.minutes + 'm' : '') + (t.total ? '<br>' + peso(t.total) : '') : rv ? esc(rv.time) + ' · ' + esc(rv.name) + '<br>' + rv.guests + ' pax' : '';
+    return `<button class="tb2 ${cls} ${mine ? 'mine' : ''} ${rdy ? 'ready' : ''}" data-act="table" data-id="${t.id}"><span class="n">${esc(t.number)}</span><span class="w">${word}</span><small>${sm}</small><span>${rdy ? '<span class="tag">READY</span> ' : ''}${t.bill_requested ? '<span class="tag">BILL</span>' : ''}</span></button>`;
+  }).join('');
+}
+async function pollTakeout() {
+  if (S.view !== 'takeout' || S.busy.k) return; S.busy.k = 1;
+  const r = await api('orders'); S.busy.k = 0;
+  const el = $('#tkl'); if (!r.ok || !el || S.view !== 'takeout') return;
+  const list = r.data.orders.filter(o => o.type !== 'dine_in');
+  el.className = 'tiles'; el.innerHTML = list.length ? list.map(o => `<div class="tile" data-act="openorder" data-id="${o.id}"><div class="tt"><b>${o.type === 'delivery' ? 'Delivery' : 'Take-out'} · ${esc(o.customer_name)}</b><span class="tag b">${esc(o.order_no)}</span></div><div class="its">${esc(o.phone)} · ${o.items.filter(i => !i.void_reason).length} items</div><b>${peso(orderTotal(o))}</b></div>`).join('') : '<p class="mute" style="text-align:center">No open take-out or delivery orders.</p>';
+}
+function orderTotal(o) { return (o.items || []).filter(i => !i.void_reason).reduce((a, i) => a + i.price * i.qty, 0); }
+
+// ---------- order detail ----------
+async function openOrder(id) {
+  const r = await api('orders/' + id); if (!r.ok) { toast('Could not open the order'); return; }
+  S.order = r.data.order; S.view = 'order'; renderOrder();
+}
+async function refreshOrder() {
+  if (S.view !== 'order' || !S.order || S.busy.o) return; S.busy.o = 1;
+  const r = await api('orders/' + S.order.id); S.busy.o = 0;
+  if (!r.ok || S.view !== 'order' || $('#modal').classList.contains('show')) return;
+  if (r.data.order.status !== 'open') { toast('This order is closed.'); goHome(); return; }
+  S.order = r.data.order; renderOrder();
+}
+function goHome() { S.cmp = null; setTab(S.tab); }
+function renderOrder() {
+  const o = S.order, role = S.user.role, batches = {};
+  o.items.forEach(i => (batches[i.batch] = batches[i.batch] || []).push(i));
+  const title = o.type === 'dine_in' ? (o.table_number ? 'Table ' + esc(o.table_number) : 'Reservation · ' + esc(o.reservation ? o.reservation.name : '')) : (o.type === 'delivery' ? 'Delivery' : 'Take-out') + ' · ' + esc(o.customer_name);
+  const stt = { new: ['NEW', 'g'], cooking: ['COOKING', 'y'], ready: ['READY', ''] };
+  $('#main').innerHTML = `<div class="row" style="margin-bottom:10px"><button class="gray" data-act="back">← Back</button><span class="sp"></span><span class="tag b">${esc(o.order_no)}</span></div>
+  <div class="card"><div class="row"><h2 class="h2">${title}</h2><span class="sp"></span><b>${peso(orderTotal(o))}</b></div><div class="sub">Waiter: ${esc(o.waiter_name || '')}${o.bill_requested ? ' · <b style="color:#b58900">BILL REQUESTED</b>' : ''}${o.phone ? ' · ' + esc(o.phone) : ''}${o.address ? '<br>' + esc(o.address) : ''}${o.delivery_company ? ' · ' + esc(o.delivery_company) : ''}</div></div>
+  ${Object.keys(batches).map(b => `<div class="card"><div class="sub" style="margin-bottom:4px">Round ${b} · sent ${esc((batches[b][0].sent_at || '').slice(11, 16))}</div>${batches[b].map(i => `<div class="line ${i.void_reason ? 'void' : ''}"><div class="row"><b>${i.qty}× ${esc(i.name)}</b><span class="sub">${esc(i.variant_label || '')}</span><span class="sp"></span>${i.kitchen && !i.void_reason ? `<span class="tag ${stt[i.status] ? stt[i.status][1] : 'g'}">${stt[i.status] ? stt[i.status][0] : esc(i.status)}</span>` : ''}</div><div class="sub">${i.rush ? '<b style="color:var(--red)">RUSH</b> ' : ''}${i.allergy ? '<b style="color:var(--red)">ALLERGY</b> ' : ''}${i.take_out ? 'TAKE-OUT ' : ''}${i.seat ? 'Seat ' + esc(i.seat) + ' ' : ''}${esc(i.notes)}${i.void_reason ? ' — void: ' + esc(i.void_reason) : ''}</div>${i.void_reason ? '' : `<button class="gray" style="min-height:36px;margin-top:4px;font-size:13px" data-act="void" data-id="${i.id}">Void</button>`}</div>`).join('')}</div>`).join('')}
+  <div class="btns"><button data-act="additems">+ Add items</button><button class="sec" data-act="bill" ${o.bill_requested ? 'disabled' : ''}>Request bill</button>${o.type === 'dine_in' ? '<button class="sec" data-act="move">Move table</button>' : ''}<button class="sec" data-act="handover">Hand over</button>${role === 'cashier' || role === 'admin' ? '<button class="sec" data-act="reprinttk" data-id="' + o.id + '">Reprint kitchen slip</button><button class="green" data-act="paybill" data-id="' + o.id + '">Bill / Pay</button>' : ''}${(role === 'waiter' || role === 'cashier' || role === 'admin') && o.type === 'dine_in' ? '<button class="sec" data-act="scanvoucher" data-id="' + o.id + '">Scan member voucher</button>' : ''}</div>`;
+}
+function voidModal(id) {
+  const it = S.order.items.find(i => i.id == id);
+  modal(`<h2 class="h2">Void ${esc(it.name)}</h2><p class="sub">A reason is required.</p>
+  <div class="btns" style="margin-top:0">${['Customer changed mind', 'Wrong order', 'Out of stock', 'Too long'].map(r => `<button class="sec" data-act="vreason" data-r="${r}">${r}</button>`).join('')}</div>
+  <input id="vr" placeholder="Reason" style="margin-top:10px"><label class="row" style="margin:12px 0"><input type="checkbox" id="vt" style="width:24px;min-height:24px" ${it.kitchen && it.status !== 'ready' ? 'checked' : ''}> Tell the kitchen</label>
+  <div class="btns"><button class="gray" data-act="closemodal">Cancel</button><button class="red" data-act="voidgo" data-id="${id}">Void it</button></div>`);
+}
+async function voidGo(id) {
+  const reason = $('#vr').value.trim(); if (!reason) { toast('Please give a reason.'); return; }
+  const r = await api('order-items/' + id + '/void', 'POST', { reason, tell_kitchen: $('#vt').checked });
+  if (r.ok) { closeModal(); toast('Voided'); openOrder(S.order.id); } else toast('Could not void: ' + (r.data.error || 'error'));
+}
+async function moveModal() {
+  const r = await api('table-status'); if (!r.ok) return;
+  modal(`<h2 class="h2">Move to which table?</h2><div class="grid" style="margin-top:10px">${r.data.tables.filter(t => t.id != S.order.table_id).map(t => `<button class="tb ${t.order_id ? 'busy' : ''}" data-act="movego" data-id="${t.id}"><span class="n" style="font-size:24px">${esc(t.number)}</span><small>${t.order_id ? 'merge' : 'free'}</small></button>`).join('')}</div><div class="btns"><button class="gray" data-act="closemodal">Cancel</button></div>`);
+}
+async function handoverModal() {
+  const r = await api('staff-names'); if (!r.ok) return;
+  const w = r.data.staff.filter(s => s.role === 'waiter' && s.id != S.order.waiter_id);
+  modal(`<h2 class="h2">Hand this order to</h2><div class="btns">${w.length ? w.map(s => `<button data-act="handgo" data-id="${s.id}">${esc(s.name)}</button>`).join('') : '<p class="mute">No other waiter.</p>'}</div><div class="btns"><button class="gray" data-act="closemodal">Cancel</button></div>`);
+}
+
+// ---------- compose (menu + cart) ----------
+function draftKey(c) { return 'bpk_draft_' + (c.mode === 'res' ? 'r' + c.res_id : c.mode === 'add' ? 'o' + c.order_id : c.type === 'dine_in' ? 't' + c.table_id : 'tk'); }
+function saveDraft() { const c = S.cmp; if (!c) return; ls(draftKey(c), c.lines.length ? JSON.stringify({ lines: c.lines, guests: c.guests, cust: c.cust, key: c.key, type: c.type }) : null); }
+function newKey() { return 'k' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10); }
+function startCompose(o) {
+  const c = Object.assign({ lines: [], guests: 2, cust: { name: '', phone: '', address: '', company: '' }, key: newKey(), cat: null, q: '' }, o);
+  const d = jparse(ls(draftKey(c)));
+  if (d && d.lines && d.lines.length) { c.lines = d.lines; c.guests = d.guests || 2; c.cust = d.cust || c.cust; c.key = d.key || c.key; if (d.type && c.mode === 'new' && c.type !== 'dine_in') c.type = d.type; }
+  S.cmp = c; S.view = 'compose';
+  const cats = (S.menu ? S.menu.categories : []).filter(x => x.active); c.cat = cats.length ? cats[0].id : null;
+  renderCompose();
+}
+function renderCompose() {
+  const c = S.cmp, cats = S.menu.categories.filter(x => x.active);
+  $('#main').style.padding = '0';
+  $('#main').innerHTML = `<div class="cmpwrap"><div class="cmp"><div class="rail" id="rail"></div><div class="mid"><div style="padding:8px;display:flex;gap:8px"><button class="gray" data-act="back" style="min-width:80px">← Back</button><input id="srch" placeholder="Search the menu" value="${esc(c.q)}"></div><div class="items" id="items"></div></div></div><button class="cartbtn" id="cartbtn" data-act="cartopen"></button><div class="cart" id="cart"></div></div>`;
+  renderRail(); renderItems(); renderCart();
+  $('#srch').addEventListener('input', e => { c.q = e.target.value; renderItems(); });
+}
+function renderRail() { const c = S.cmp; $('#rail').innerHTML = (S.group && S.group.sets.length ? `<button class="${!c.q && c.cat === 'gm' ? 'on' : ''}" data-act="cat" data-id="gm">★ Group Meals</button>` : '') + S.menu.categories.filter(x => x.active).map(x => `<button class="${!c.q && c.cat === x.id ? 'on' : ''}" data-act="cat" data-id="${x.id}">${esc(x.name)}</button>`).join(''); }
+function renderItems() {
+  const c = S.cmp, q = c.q.trim().toLowerCase();
+  const activeCats = new Set(S.menu.categories.filter(x => x.active).map(x => x.id));
+  if (c.cat === 'gm' && !q) {
+    $('#items').innerHTML = S.group.sets.map(g => `<button class="it" data-act="gset" data-id="${g.id}"><span>${esc(g.name)} · ${g.persons} pax<div class="sub">Save ${peso(g.savings)}${+g.free_card ? ' · includes 1 free Prestige' : ''}</div></span><span class="p">${peso(g.price)}</span></button>`).join('');
+    return;
+  }
+  const list = S.menu.items.filter(i => i.active && activeCats.has(i.category_id) && (q ? i.name.toLowerCase().includes(q) : i.category_id === c.cat));
+  $('#items').innerHTML = list.map(i => {
+    const ps = i.variants.map(v => v.price), p = Math.min.apply(null, ps), out = !i.in_stock;
+    return `<button class="it ${out ? 'out' : ''}" data-act="item" data-id="${i.id}" ${out ? 'disabled' : ''}>${i.photo ? `<img loading="lazy" src="../${esc(i.photo)}" alt="">` : '<div class="ph">No photo</div>'}${i.badge ? '<span class="tag b bd">' + esc(i.badge) + '</span>' : ''}${out ? '<span class="tag r bd" style="left:auto;right:6px">OUT</span>' : ''}<span class="nm"><b>${esc(i.name)}</b></span><span class="p">${ps.length > 1 ? 'from ' : ''}${peso(p)}</span></button>`;
+  }).join('') || '<p class="mute" style="text-align:center;grid-column:1/-1">Nothing here.</p>';
+  if (q) renderRail();
+}
+function cartTotal() { return S.cmp.lines.reduce((a, l) => a + l.price * l.qty, 0); }
+function renderCart() {
+  const c = S.cmp, el = $('#cart'); if (!el) return;
+  const open = el.classList.contains('open');
+  const n = c.lines.reduce((a, l) => a + l.qty, 0);
+  $('#cartbtn').textContent = n ? `Order: ${n} item${n > 1 ? 's' : ''} · ${peso(cartTotal())}` : 'Order is empty';
+  const head = c.mode === 'res' ? `<b class="h2">Advance order</b><div class="sub">${esc(c.res_name)} · goes to the kitchen's Reserved list now</div>` : c.mode === 'add' ? `<b class="h2">Adding to ${c.type === 'dine_in' ? 'Table ' + esc(c.table_number) : 'order'}</b>`
+    : c.type === 'dine_in' ? `<div class="row"><b class="h2">Table ${esc(c.table_number)}</b><span class="sp"></span><span class="sub">Guests</span><div class="qty"><button data-act="gdec">−</button><span>${c.guests}</span><button data-act="ginc">+</button></div></div>`
+    : `<b class="h2">${c.type === 'delivery' ? 'Delivery' : 'Take-out'}</b><div style="display:grid;gap:6px;margin-top:6px"><input id="cn" placeholder="Customer name" value="${esc(c.cust.name)}"><input id="cp" placeholder="Phone" inputmode="tel" value="${esc(c.cust.phone)}">${c.type === 'delivery' ? `<input id="ca" placeholder="Address" value="${esc(c.cust.address)}"><input id="cc" placeholder="Delivery company / rider" value="${esc(c.cust.company)}">` : ''}</div>`;
+  el.innerHTML = `<div class="row" style="padding:8px 10px;border-bottom:1px solid var(--line)"><div style="flex:1">${head}</div><button class="gray cartclose" data-act="cartclose" style="min-height:40px">Hide</button></div>
+  <div class="body">${c.lines.map((l, i) => `<div class="line"><div class="row"><div style="flex:1" ${l.group ? '' : 'data-act="editline"'} data-i="${i}"><b>${esc(l.name)}</b> <span class="sub">${esc(l.label)}</span><div class="sub">${l.rush ? '<b style="color:var(--red)">RUSH</b> ' : ''}${l.allergy ? '<b style="color:var(--red)">ALLERGY</b> ' : ''}${l.take_out ? 'TAKE-OUT ' : ''}${l.seat ? 'Seat ' + esc(l.seat) + ' ' : ''}${esc(l.notes)}</div></div><div class="qty"><button data-act="ldec" data-i="${i}">−</button><span>${l.qty}</span>${l.group ? '' : `<button data-act="linc" data-i="${i}">+</button>`}</div></div></div>`).join('') || '<p class="mute" style="text-align:center">Tap dishes to add them.</p>'}</div>
+  <div class="foot"><div class="row" style="margin-bottom:8px"><b>Total</b><span class="sp"></span><b style="font-size:20px">${peso(cartTotal())}</b></div><button data-act="send" style="width:100%;min-height:56px" ${n && !c.sending ? '' : 'disabled'}>${c.sending ? 'Sending…' : 'Send to kitchen'}</button></div>`;
+  if (open) el.classList.add('open');
+  ['cn:name', 'cp:phone', 'ca:address', 'cc:company'].forEach(p => { const [id, k] = p.split(':'), e = $('#' + id); if (e) e.addEventListener('input', ev => { c.cust[k] = ev.target.value; saveDraft(); }); });
+  saveDraft();
+}
+function lineModal(item, idx) {
+  const c = S.cmp, ex = idx != null ? c.lines[idx] : null;
+  const vsel = ex ? ex.variant_id : item.variants[0].id;
+  modal(`<h2 class="h2">${esc(item.name)}</h2>
+  ${ex ? `<p class="sub">${esc(ex.label)}</p>` : item.variants.map(v => `<label class="vopt"><input type="radio" name="vv" value="${v.id}" ${v.id === vsel ? 'checked' : ''}><span>${esc(v.label)}${v.pax ? ' <span class="sub">(' + v.pax + ' pax)</span>' : ''}</span><b style="margin-left:auto">${peso(v.price)}</b></label>`).join('')}
+  <div class="row" style="margin:8px 0"><b>Quantity</b><span class="sp"></span><div class="qty"><button data-act="mq" data-d="-1">−</button><span id="mqn">${ex ? ex.qty : 1}</span><button data-act="mq" data-d="1">+</button></div></div>
+  <div class="chk"><label><input type="checkbox" id="mrush" ${ex && ex.rush ? 'checked' : ''}><span>RUSH</span></label><label><input type="checkbox" id="mall" ${ex && ex.allergy ? 'checked' : ''}><span>ALLERGY</span></label><label><input type="checkbox" id="mto" ${ex && ex.take_out ? 'checked' : ''}><span>TAKE-OUT</span></label></div>
+  <input id="mseat" placeholder="Seat (optional, e.g. 1 or A)" value="${esc(ex ? ex.seat : '')}" style="margin-bottom:8px"><input id="mnote" placeholder="Notes for the kitchen (e.g. no onion)" value="${esc(ex ? ex.notes : '')}">
+  <div class="btns"><button class="gray" data-act="closemodal">Cancel</button>${ex ? `<button class="red" data-act="ldel" data-i="${idx}">Remove</button>` : ''}<button data-act="mok" data-id="${item.id}" data-i="${idx == null ? '' : idx}">${ex ? 'Save' : 'Add to order'}</button></div>`);
+}
+function modalOk(itemId, idx) {
+  const c = S.cmp, item = S.menu.items.find(i => i.id == itemId), qty = parseInt($('#mqn').textContent, 10) || 1;
+  const f = { qty, rush: $('#mrush').checked, allergy: $('#mall').checked, take_out: $('#mto').checked, seat: $('#mseat').value.trim(), notes: $('#mnote').value.trim() };
+  if (idx !== '' && idx != null) Object.assign(c.lines[+idx], f);
+  else { const r = document.querySelector('input[name=vv]:checked'), v = item.variants.find(x => x.id == (r ? r.value : item.variants[0].id)); c.lines.push(Object.assign({ variant_id: v.id, item_id: item.id, name: item.name, label: v.label, price: v.price }, f)); }
+  closeModal(); renderCart(); toast('Added: ' + item.name, 900);
+}
+function groupModal(setId) {
+  const g = S.group, set = g.sets.find(x => x.id == setId), pos = g.sets.findIndex(x => x.id == setId) + 1;
+  modal(`<h2 class="h2">${esc(set.name)} · ${set.persons} pax · ${peso(set.price)}</h2><p class="sub">Choose one for every group below. Group Meals cannot be combined with discounts.</p>
+  ${g.portions.map((p, pi) => `<div class="card" style="margin-top:8px"><b>${esc(p.category)}</b> <span class="tag b">${esc(p['p' + pos])}</span><div class="sub">${esc(p.choice)}</div>${g.options.filter(o => o.category === p.category).map(o => `<label class="vopt" style="margin:6px 0 0"><input type="radio" name="gp${pi}" value="${o.id}"><span>${esc(o.name)}</span>${+o['addon' + pos] ? `<b style="margin-left:auto">+${peso(o['addon' + pos])}</b>` : ''}</label>`).join('')}</div>`).join('')}
+  <input id="gnote" placeholder="Notes for the kitchen (optional)" style="margin-top:10px">
+  <div class="btns"><button class="gray" data-act="closemodal">Cancel</button><button data-act="gok" data-id="${set.id}">Add to order</button></div>`);
+}
+function groupOk(setId) {
+  const g = S.group, set = g.sets.find(x => x.id == setId), pos = g.sets.findIndex(x => x.id == setId) + 1, picks = {}; let total = +set.price;
+  for (let i = 0; i < g.portions.length; i++) {
+    const p = g.portions[i], r = document.querySelector('input[name=gp' + i + ']:checked');
+    if (!r) { toast('Please choose: ' + p.category); return; }
+    picks[p.category] = +r.value; total += +g.options.find(o => o.id == r.value)['addon' + pos] || 0;
+  }
+  S.cmp.lines.push({ group: { set_id: set.id, picks }, name: 'Group Meal ' + set.name, label: set.persons + ' pax', price: total, qty: 1, notes: $('#gnote').value.trim(), seat: '', take_out: false, rush: false, allergy: false });
+  closeModal(); renderCart(); toast('Added: Group Meal ' + set.name, 1200);
+}
+async function sendCmp() {
+  const c = S.cmp; if (!c.lines.length || c.sending) return;
+  if (c.type !== 'dine_in' && c.mode === 'new') {
+    if (!c.cust.name.trim() || !c.cust.phone.trim()) { toast('Please enter the customer name and phone.'); return; }
+    if (c.type === 'delivery' && (!c.cust.address.trim() || !c.cust.company.trim())) { toast('Delivery needs an address and a delivery company.'); return; }
+  }
+  c.sending = true; renderCart();
+  const items = c.lines.map(l => l.group ? { group: l.group, notes: l.notes } : ({ variant_id: l.variant_id, qty: l.qty, notes: l.notes, seat: l.seat, take_out: l.take_out ? 1 : 0, rush: l.rush ? 1 : 0, allergy: l.allergy ? 1 : 0 }));
+  const r = c.mode === 'res' ? await api('reservations/' + c.res_id + '/order', 'POST', { client_key: c.key, items })
+    : c.mode === 'add' ? await api('orders/' + c.order_id + '/items', 'POST', { client_key: c.key, items })
+    : await api('orders', 'POST', { reservation_id: c.reservation_id || undefined, type: c.type, table_id: c.table_id || null, guests: c.guests, customer_name: c.cust.name, phone: c.cust.phone, address: c.cust.address, delivery_company: c.cust.company, client_key: c.key, items });
+  c.sending = false;
+  if (r.ok) { ls(draftKey(c), null); $('#main').style.padding = ''; toast('Sent to the kitchen'); const id = r.data.order && r.data.order.id; S.cmp = null; if (c.mode === 'new' && c.type === 'dine_in' && id) { openOrder(id); } else goHome(); }
+  else if (r.data.error === 'table_busy') { ls(draftKey(c), null); $('#main').style.padding = ''; toast('That table was just taken by someone else.'); S.cmp = null; goHome(); }
+  else if (r.data.error === 'out_of_stock') { toast((r.data.detail || 'A dish') + ' is out of stock. Remove it and send again.', 4000); refreshMenu(); renderCart(); }
+  else if (r.status === 0) { toast('No connection. Tap Send again. It will not be sent twice.', 4000); renderCart(); }
+  else { toast('Could not send: ' + (r.data.error || 'error'), 4000); renderCart(); }
+}
+async function refreshMenu() { const m = await api('menu'); if (m.ok) { S.menu = m.data; if (S.view === 'compose') renderItems(); } }
+
+// ---------- kitchen ----------
+function colorClass(min) { const t = S.timers; return min < t[0] ? '' : min < t[1] ? 'c-y' : min < t[2] ? 'c-o' : 'c-r' + (min >= t[3] ? ' blink' : ''); }
+async function pollKitchen() {
+  if (S.view !== 'kitchen' || S.busy.k2) return; S.busy.k2 = 1;
+  const r = await api('kitchen'); S.busy.k2 = 0;
+  if (!r.ok || S.view !== 'kitchen') return;
+  const d = r.data; S.timers = d.timers || S.timers; const t0 = Date.now();
+  const keys = d.tickets.map(t => t.order_id + ':' + t.batch), vids = d.voids.map(v => v.id);
+  if (S.kseen) { if (keys.some(k => !S.kseen.k.includes(k))) chime(); if (vids.some(v => !S.kseen.v.includes(v))) siren(); }
+  S.kseen = { k: keys, v: vids };
+  const sig = JSON.stringify([d.tickets, d.voids]);
+  if (sig !== S.ksig) {
+    S.ksig = sig;
+    $('#vb').innerHTML = d.voids.map(v => `<div class="vb"><b>VOID</b><span class="sp">${esc(v.qty)}× ${esc(v.name)} · ${v.table_number ? 'Table ' + esc(v.table_number) : esc(v.order_no)} · ${esc(v.void_reason)}</span><button data-act="voidseen" data-id="${v.id}">OK</button></div>`).join('');
+    const tk = d.tickets.slice().sort((a, b) => (a.status === 'ready') - (b.status === 'ready') || b.age - a.age);
+    $('#kb').innerHTML = tk.map(t => {
+      const start = t0 - t.age * 1000, rdy = t.status === 'ready';
+      const who = t.table_number ? 'Table ' + esc(t.table_number) : (t.type === 'delivery' ? 'Delivery' : 'Take-out');
+      return `<div class="tk ${rdy ? 'rdy' : ''}" data-start="${start}" data-ready="${rdy ? 1 : 0}"><div class="hd"><b>${who}</b><span class="sub" style="color:#aeb9cc">#${esc(t.order_no)} · R${t.batch}</span><span class="tm">${rdy ? 'READY' : ''}</span></div><div class="sub" style="color:#aeb9cc">${esc(t.waiter || '')}${t.guests ? ' · ' + t.guests + ' pax' : ''}</div>
+      ${t.items.map(i => `<div class="li"><b>${i.qty}×</b> ${esc(i.name)} <span style="color:#aeb9cc">${esc(i.variant)}</span>${i.rush ? ' <span class="tag r">RUSH</span>' : ''}${i.allergy ? ' <span class="tag r">ALLERGY</span>' : ''}${i.take_out ? ' <span class="tag b">TAKE-OUT</span>' : ''}<small>${i.seat ? 'Seat ' + esc(i.seat) + ' ' : ''}${esc(i.notes)}</small></div>`).join('')}
+      ${t.status === 'new' ? `<button class="gray" data-act="kst" data-o="${t.order_id}" data-b="${t.batch}" data-s="cooking">Start cooking</button>` : t.status === 'cooking' ? `<button class="green" data-act="kst" data-o="${t.order_id}" data-b="${t.batch}" data-s="ready">READY ✓</button>` : `<button class="gray" data-act="kst" data-o="${t.order_id}" data-b="${t.batch}" data-s="cooking">Recall</button>`}</div>`;
+    }).join('') || '<p style="text-align:center;color:#8896ad;font-size:20px;margin-top:60px">No orders in the kitchen.</p>';
+    tickTimers();
+  }
+  const sv = await api('service-calls');
+  if (sv.ok && S.view === 'kitchen') { const c = sv.data.calls[0], e = $('#svst'); if (e) e.textContent = c ? (c.ack_by ? '✓ ' + (c.ack_by_name || 'Someone') + ' is coming' : 'Service called…') : ''; }
+}
+function tickTimers() {
+  document.querySelectorAll('.tk').forEach(el => {
+    if (el.dataset.ready === '1') return;
+    const sec = Math.max(0, Math.floor((Date.now() - +el.dataset.start) / 1000)), min = Math.floor(sec / 60);
+    el.className = 'tk ' + colorClass(min);
+    const tm = el.querySelector('.tm'); if (tm) tm.textContent = String(min).padStart(2, '0') + ':' + String(sec % 60).padStart(2, '0');
+  });
+}
+setInterval(tickTimers, 1000);
+async function stockModal() {
+  const m = await api('menu'); if (m.ok) S.menu = m.data;
+  modal(`<h2 class="h2">Out of stock</h2><input id="stq" placeholder="Search dish" style="margin:10px 0"><div id="stl"></div><div class="btns"><button class="gray" data-act="closemodal">Close</button></div>`);
+  const draw = () => { const q = $('#stq').value.trim().toLowerCase(); $('#stl').innerHTML = S.menu.items.filter(i => i.active && (!q ? !i.in_stock : i.name.toLowerCase().includes(q))).slice(0, 40).map(i => `<div class="row line"><span>${esc(i.name)}</span><span class="sp"></span><button class="${i.in_stock ? 'gray' : 'red'}" style="min-height:40px" data-act="stocktoggle" data-id="${i.id}" data-v="${i.in_stock ? 0 : 1}">${i.in_stock ? 'Mark OUT' : 'OUT — tap to restore'}</button></div>`).join('') || '<p class="mute">Nothing is marked out of stock. Search for a dish to mark it.</p>'; };
+  $('#stq').addEventListener('input', draw); S.stockDraw = draw; draw();
+}
+
+// ---------- cashier ----------
+async function pollCashier() {
+  if (S.view !== 'cashier' || S.busy.c) return; S.busy.c = 1;
+  const r = await api('orders'); S.busy.c = 0;
+  const el = $('#col'); if (!r.ok || !el || S.view !== 'cashier') return;
+  const list = r.data.orders.slice().sort((a, b) => b.bill_requested - a.bill_requested);
+  const bills = list.filter(o => o.bill_requested).map(o => o.id);
+  if (S.bseen && bills.some(b => !S.bseen.includes(b))) chime(); S.bseen = bills;
+  el.className = 'tiles'; el.innerHTML = list.map(o => `<div class="tile ${o.bill_requested ? 'bill' : ''}"><div class="tt"><b>${o.type === 'dine_in' ? (o.table_number ? 'Table ' + esc(o.table_number) : 'Reservation · ' + esc(o.reservation ? o.reservation.name : '')) : (o.type === 'delivery' ? 'Delivery' : 'Take-out') + ' · ' + esc(o.customer_name)}</b>${o.bill_requested ? '<span class="tag y">BILL</span>' : ''}<b style="flex:none">${peso(orderTotal(o))}</b></div><div class="sub">${esc(o.order_no)} · ${esc(o.waiter_name || '')}</div><div class="its">${o.items.filter(i => !i.void_reason).map(i => i.qty + '× ' + esc(i.name)).join(', ')}</div>${o.type === 'delivery' ? riderBlock(o) : ''}<div class="btns"><button class="sec" data-act="openorder" data-id="${o.id}">View</button><button class="green" data-act="paybill" data-id="${o.id}">Bill / Pay</button></div></div>`).join('') || '<p class="mute" style="text-align:center">No open orders.</p>';
+}
+
+// ---------- printing from this tablet (Android app only) ----------
+const PR = { busy: false, wait: null, n: 0 };
+function prMap() { try { return JSON.parse(localStorage.getItem('bpk_pmap') || '{}'); } catch (e) { return {}; } }
+async function printLoop() {
+  if (PR.busy || !S.token || !window.BPKNative || S.user.role === 'rider') return; const map = prMap(), ids = Object.keys(map).filter(k => map[k]); if (!ids.length) return; PR.busy = true;
+  try {
+    const r = await api('print/pending?ids=' + ids.join(',')); if (!r.ok || !r.data.jobs.length) return; const j = r.data.jobs[0];
+    const res = await new Promise(resolve => { const t = setTimeout(() => resolve({ ok: false, error: 'printer did not answer' }), 40000); PR.wait = { id: j.id, done: v => { clearTimeout(t); resolve(v); } }; BPKNative.printDoc(String(j.id), map[j.printer_id], j.paper_mm, JSON.stringify(j.doc)); });
+    PR.wait = null; await api('print/' + j.id + '/result', 'POST', res);
+  } catch (e) {} finally { PR.busy = false; }
+}
+setInterval(printLoop, 2000);
+async function pollPrintStatus() {
+  if (!S.token || !['cashier', 'kitchen', 'admin'].includes(S.user.role)) return; const r = await api('print/status'); const el = $('#pbanner'); if (!r.ok || !el) return;
+  const bad = r.data.printers.filter(p => p.problem);
+  el.innerHTML = bad.length ? `<div class="pstrip">🖨 <span class="sp">${bad.map(p => '<b>' + esc(p.name) + '</b> (' + esc(p.last_error || 'not printing') + (p.waiting ? ', ' + p.waiting + ' waiting' : '') + ')').join(' · ')}</span><button data-act="prfix">Fix</button></div>` : '';
+}
+setInterval(pollPrintStatus, 8000);
+async function printSetup() {
+  const r = await api('printers'); if (!r.ok) { toast('Could not load printers.'); return; }
+  let dev = []; let msg = '';
+  try { const d = JSON.parse(BPKNative.listPrinters()); if (d.ok) dev = d.printers; else if (d.error === 'permission') { BPKNative.requestPermission(); msg = 'Please allow Bluetooth, then open this again.'; } else msg = d.error; } catch (e) { msg = 'Could not read paired devices.'; }
+  const map = prMap();
+  modal(`<h2 class="h2">Printers on this tablet</h2><p class="sub">Pair the printer in Android Bluetooth settings first. Then choose which printer this tablet prints to. Leave "none" for printers on other tablets.</p>${msg ? `<p style="color:var(--red)">${esc(msg)}</p>` : ''}
+    ${r.data.printers.map(p => `<div class="card" style="margin:8px 0"><b>${esc(p.name)}</b> <span class="sub">${esc(p.location)} · ${p.paper_mm} mm</span><select class="prsel" data-id="${p.id}" style="width:100%;margin-top:6px"><option value="">none (not on this tablet)</option>${dev.map(d => `<option value="${esc(d.address)}" ${map[p.id] === d.address ? 'selected' : ''}>${esc(d.name)}</option>`).join('')}</select><div class="btns"><button class="sec" data-act="prtest" data-id="${p.id}" data-mm="${p.paper_mm}" data-name="${esc(p.name)}">Test print</button></div></div>`).join('')}
+    <div class="btns"><button class="gray" data-act="closemodal">Close</button><button data-act="prsave">Save</button></div><div class="btns"><button class="gray" data-act="hw">Hardware test page</button></div>`);
+}
+
+// ---------- texts sent from this tablet's SIM (Android app only) ----------
+const SMS = { busy: false, wait: null };
+function smsOn() { try { return localStorage.getItem('bpk_sms') === '1'; } catch (e) { return false; } }
+window.onNative = o => { if (o && o.type === 'printjob' && PR.wait) { const [id, err] = String(o.message || '').split('|'); if (+id === PR.wait.id) PR.wait.done({ ok: !!o.ok, error: err || '' }); } else if (o && o.type === 'sms' && SMS.wait) { const [id, err] = String(o.message || '').split('|'); if (+id === SMS.wait.id) SMS.wait.done({ ok: !!o.ok, error: err || '' }); } else if (o && o.type === 'sms_permission') toast(o.ok ? 'Text permission granted.' : 'Text permission was not granted.', 3500); };
+async function smsLoop() {
+  if (SMS.busy || !S.token || !window.BPKNative || !['cashier', 'admin'].includes(S.user.role) || !smsOn()) return; SMS.busy = true;
+  try {
+    if (!BPKNative.smsReady()) { BPKNative.smsRequest(); return; }
+    const r = await api('sms/pending?limit=1'); if (!r.ok || !r.data.messages.length) return;
+    const m = r.data.messages[0];
+    const res = await new Promise(resolve => { const t = setTimeout(() => resolve({ ok: false, error: 'no answer from phone' }), 45000); SMS.wait = { id: m.id, done: v => { clearTimeout(t); resolve(v); } }; BPKNative.sendSms(String(m.id), m.phone, m.body); });
+    SMS.wait = null; await api('sms/' + m.id + '/result', 'POST', res);
+    await new Promise(r2 => setTimeout(r2, (r.data.gap || 4) * 1000));
+  } catch (e) {} finally { SMS.busy = false; }
+}
+setInterval(smsLoop, 3000);
+function receiptSms(billId, phone) {
+  const p = prompt('Mobile number to text the receipt to:', phone || ''); if (!p) return;
+  api('bills/' + billId + '/sms-receipt', 'POST', { phone: p }).then(r => toast(r.ok ? 'Receipt will be texted.' : 'Please check the mobile number.', 3000));
+}
+
+// ---------- cashier: online orders ----------
+const ONLINE = { list: [], seen: null, low: {} };
+async function pollOnline() {
+  if (!S.token || !['cashier', 'admin'].includes(S.user.role) || S.busy.o) return; S.busy.o = 1;
+  const r = await api('online/pending'); S.busy.o = 0; if (!r.ok) return;
+  const now = Date.now(); r.data.orders.forEach(o => o.deadline = now + o.seconds_left * 1000); ONLINE.list = r.data.orders;
+  const ids = ONLINE.list.map(o => o.id); if (ONLINE.seen && ids.some(i => !ONLINE.seen.includes(i))) { chime(); setTimeout(chime, 900); } ONLINE.seen = ids;
+  const bt = document.querySelector('button[data-t=online]'); if (bt) bt.textContent = 'Online' + (ids.length ? ' (' + ids.length + ')' : '');
+  if (S.view === 'online') renderOnline();
+}
+function onlineLeft(o) { return Math.max(0, Math.round((o.deadline - Date.now()) / 1000)); }
+function renderOnline() {
+  const el = $('#onl'); if (!el) return;
+  el.className = 'tiles'; el.innerHTML = ONLINE.list.map(o => `<div class="tile" data-oid="${o.id}"><div class="row"><b class="h2" style="font-size:16px">${o.type === 'delivery' ? 'Delivery · ' + esc(o.company) : 'Pick-up'} · ${esc(o.name)}</b><span class="sp"></span><span class="tag b">${esc(o.order_no)}</span><span class="tag y oleft" data-id="${o.id}"></span></div>
+    ${o.member ? `<div class="sub">⭐ Member: <b>${esc(o.member)}</b>${o.voucher ? ' · Voucher: <b>' + esc(o.voucher) + '</b>' : ''} · points are added when paid</div>` : ''}
+    <div class="sub">📞 ${esc(o.phone)}${o.type === 'delivery' ? ' · ' + esc(o.address) + (o.landmark ? ' (' + esc(o.landmark) + ')' : '') : ''}${o.note ? ' · Note: ' + esc(o.note) : ''}</div>
+    ${o.items.map(i => `<div class="line row"><span style="flex:1">${i.qty}× ${esc(i.name)} <span class="sub">${esc(i.label)}</span></span><b>${peso(i.price * i.qty)}</b><button class="gray" style="min-height:36px;padding:0 10px" data-act="onless" data-oid="${o.id}" data-line="${i.id}" data-qty="${i.qty}">${i.qty > 1 ? '−1' : 'Remove'}</button></div>`).join('')}
+    <div class="row line"><b>Total</b><span class="sp"></span><b style="font-size:20px">${peso(o.total)}</b></div>
+    <div class="sub">Payment: <b>${o.pay_method === 'gcash' ? 'GCash · ref ' + esc(o.pay_ref) : 'Cash'}</b>${o.has_shot ? '' : (o.pay_method === 'gcash' ? ' · no screenshot yet' : '')}</div>
+    <div class="btns">${o.has_shot ? `<button class="sec" data-act="onshot" data-id="${o.id}">View screenshot</button>` : ''}<button class="red" data-act="oncancel" data-id="${o.id}">Cancel</button><button class="green" data-act="onaccept" data-id="${o.id}">Accept</button></div></div>`).join('') || '<p class="mute" style="text-align:center">No online orders waiting.</p>';
+  tickOnline();
+}
+function tickOnline() {
+  document.querySelectorAll('.oleft').forEach(e => { const o = ONLINE.list.find(x => x.id === +e.dataset.id); if (!o) return; const sec = onlineLeft(o);
+    e.textContent = Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0') + ' left'; e.className = 'tag oleft ' + (sec <= 300 ? 'r' : 'y');
+    if (sec <= 300 && sec > 0 && !ONLINE.low[o.id]) { ONLINE.low[o.id] = 1; chime(); } });
+}
+setInterval(tickOnline, 1000);
+async function onlineAct(id, act) {
+  let body = {};
+  if (act === 'accept') { if (!confirm('Accept this order and send it to the kitchen?')) return; }
+  else { const why = prompt('Reason for cancelling (the customer will see it):'); if (!why || !why.trim()) { toast('A reason is required.'); return; } body = { reason: why.trim() }; }
+  const r = await api('online/' + id + '/' + act, 'POST', body);
+  if (r.ok) { toast(act === 'accept' ? 'Accepted. It is in the kitchen.' : 'Cancelled.'); pollOnline(); }
+  else { toast(r.data.error === 'not_pending' ? 'This order was already handled or timed out.' : 'Could not do that.', 3500); pollOnline(); }
+}
+async function onlineShot(id) {
+  const r = await fetch(API + 'online/' + id + '/shot', { headers: { Authorization: 'Bearer ' + S.token } }).catch(() => null);
+  if (!r || !r.ok) { toast('Could not open the screenshot.'); return; }
+  const url = URL.createObjectURL(await r.blob());
+  modal(`<h2 class="h2">GCash screenshot</h2><img src="${url}" style="width:100%;border-radius:12px;margin-top:8px"><div class="btns"><button data-act="closemodal">Close</button></div>`);
+}
+
+const RST = { assigned: 'Assigned, not received yet', received: 'Rider received it', picked: 'Rider picked it up', delivered: 'Delivered' };
+function orderReady(o) { const k = o.items.filter(i => i.kitchen == 1 && !i.void_reason && i.status !== 'void'); return k.length > 0 && k.every(i => i.status === 'ready'); }
+function riderBlock(o) {
+  const ready = orderReady(o), warn = ready && !o.rider_id ? '<span class="tag r">READY: NO RIDER</span>' : '';
+  return `<div class="sub" style="margin-top:6px">🛵 ${esc(o.delivery_company)}: ${o.rider_id ? '<b>' + esc(o.rider_name) + '</b> · ' + esc(RST[o.rider_status] || '') : 'no rider yet'} ${warn}${ready && o.rider_status === 'assigned' ? ' <span class="tag y">Food ready, waiting for rider to confirm</span>' : ''}</div>${['picked', 'delivered'].includes(o.rider_status) ? '' : `<div class="btns"><button class="sec" data-act="assignrider" data-id="${o.id}" data-co="${esc(o.delivery_company)}">${o.rider_id ? 'Change rider' : 'Assign rider'}</button></div>`}`;
+}
+async function assignModal(id, co) {
+  const r = await api('riders'); if (!r.ok) { toast('Could not load riders.'); return; }
+  const list = r.data.riders.filter(x => x.company === co && +x.on_duty);
+  modal(`<h2 class="h2">Assign a rider · ${esc(co)}</h2>${list.length ? `<div class="btns" style="flex-direction:column">${list.map(x => `<button data-act="assigngo" data-id="${id}" data-r="${x.id}" style="min-height:56px">${esc(x.name)} <span class="sub" style="color:inherit">(${x.active_orders} active)</span></button>`).join('')}</div>` : '<p class="mute">No rider of this company is on duty right now.</p>'}<div class="btns"><button class="gray" data-act="closemodal">Close</button></div>`);
+}
+async function assignGo(id, rid) { const r = await api('orders/' + id + '/assign-rider', 'POST', { rider_id: +rid }); closeModal(); toast(r.ok ? 'Rider assigned.' : r.data.error === 'rider_off_duty' ? 'That rider is off duty now.' : 'Could not assign.', 3000); pollCashier(); }
+
+// ---------- alerts: ready food + service ----------
+async function pollAlerts() {
+  if (!S.token || S.user.role === 'kitchen' || S.busy.a) return; S.busy.a = 1;
+  const [a, sv] = await Promise.all([api('my-alerts'), api('service-calls')]); S.busy.a = 0;
+  if (a.ok) {
+    const groups = {}; a.data.ready.forEach(i => { const g = groups[i.order_id] = groups[i.order_id] || { t: i.table_number ? 'Table ' + i.table_number : i.order_no, items: [], ids: [] }; g.items.push(i.qty + '× ' + i.name); g.ids.push(i.id); });
+    const ids = a.data.ready.map(i => i.id), fresh = ids.some(i => !(S.ralert || []).includes(i)); S.ralert = ids;
+    if (fresh) chime();
+    $('#alerts').innerHTML = Object.keys(groups).map(k => `<div class="banner"><div><b>${esc(groups[k].t)} — food is ready</b><div>${esc(groups[k].items.join(', '))}</div></div><span class="sp"></span><button data-act="seen" data-ids="${groups[k].ids.join(',')}">OK</button></div>`).join('');
+  }
+  if (sv.ok) {
+    const open = sv.data.calls.filter(c => !c.ack_by);
+    if (open.length) showSvc(open[0]); else hideSvc();
+  }
+}
+function showSvc(c) {
+  if (!$('#svcov')) {
+    const d = document.createElement('div'); d.className = 'svc'; d.id = 'svcov';
+    d.innerHTML = `<h1>SERVICE</h1><div style="font-size:24px">Kitchen is calling${c.note ? ': ' + esc(c.note) : ''}</div><button data-act="svcack" data-id="${c.id}">On my way</button>`;
+    document.body.appendChild(d);
+  }
+  if (!S.sirenT) { siren(); S.sirenT = setInterval(siren, 1500); }
+}
+function hideSvc() { const d = $('#svcov'); if (d) d.remove(); stopSiren(); }
+function stopSiren() { if (S.sirenT) { clearInterval(S.sirenT); S.sirenT = null; } }
+
+// ---------- one click handler ----------
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const a = b.dataset.act, d = b.dataset;
+  switch (a) {
+    case 'relogin': showLogin(); break;
+    case 'pick': showPin(d.id); break;
+    case 'key': if (d.k === 'del') S.pin = S.pin.slice(0, -1); else if (S.pin.length < 6) S.pin += d.k; drawDots(); break;
+    case 'pinok': submitPin(); break;
+    case 'logout': doLogout(); break;
+    case 'msearch': memSearch(); break;
+    case 'assignrider': assignModal(+d.id, d.co); break;
+    case 'assigngo': assignGo(+d.id, d.r); break;
+    case 'prsetup': printSetup(); break;
+    case 'prsave': { const m = {}; document.querySelectorAll('.prsel').forEach(s => { if (s.value) m[s.dataset.id] = s.value; }); try { localStorage.setItem('bpk_pmap', JSON.stringify(m)); } catch (e) {} closeModal(); toast('Saved. This tablet will print for the printers you chose.', 3500); break; }
+    case 'prtest': { const sel = document.querySelector('.prsel[data-id="' + d.id + '"]'); if (!sel || !sel.value) { toast('Choose a printer first.'); break; } BPKNative.testPrint(sel.value, +d.mm, d.name); toast('Test slip sent. Check the printer.', 3500); break; }
+    case 'rcptprint': { const r = await api('bills/' + d.id + '/print', 'POST'); toast(r.ok ? 'Receipt sent to the printer.' : 'No receipt printer is set up.', 3000); break; }
+    case 'reprinttk': { const r = await api('orders/' + d.id + '/reprint-ticket', 'POST'); toast(r.ok ? 'Kitchen slip sent to the printer.' : 'No printer is set for these dishes.', 3000); break; }
+    case 'smstoggle': try { localStorage.setItem('bpk_sms', smsOn() ? '0' : '1'); } catch (e) {} setTab(S.tab); toast(smsOn() ? 'This tablet will now send the texts.' : 'This tablet will not send texts.', 3000); break;
+    case 'smsrcpt': receiptSms(+d.id, d.ph); break;
+    case 'onless': { const q = +d.qty - 1; if (q === 0 && !confirm('Remove this item from the order? Call the customer first.')) break; const r = await api('online/' + d.oid + '/line', 'POST', { line_id: +d.line, qty: q }); toast(r.ok ? 'Updated. Please tell the customer.' : (r.data.error === 'last_line' ? 'This is the only item. Cancel the order instead.' : 'Could not change it.'), 3500); pollOnline(); break; }
+    case 'onaccept': onlineAct(+d.id, 'accept'); break;
+    case 'oncancel': onlineAct(+d.id, 'cancel'); break;
+    case 'onshot': onlineShot(+d.id); break;
+    case 'vresolve': vResolve($('#vc').value.trim()); break;
+    case 'vscan': vScan(); break;
+    case 'actcode': { const r = await api('loyalty/members/' + d.id + '/activation-code', 'POST', { free_group: +d.free }); if (r.ok) modal(`<h2 class="h2">Activation code</h2><div style="font-size:48px;font-weight:800;letter-spacing:6px;text-align:center;margin:12px 0">${esc(r.data.code)}</div><p class="sub" style="text-align:center">Tell the member. It is valid for ${r.data.valid_hours} hours. They type it on the member site or app.</p><div class="btns"><button data-act="closemodal">Done</button></div>`); else toast('Could not issue a code.'); memSearch(); break; }
+    case 'quick': quickModal(); break;
+    case 'qsend': closeModal(); sendQuick(d.t); break;
+    case 'replay': playClip(d.id); break;
+    case 'vdismiss': b.parentElement.remove(); break;
+    case 'pttcancel': pttStop(true); break;
+    case 'pttsend': pttStop(false); break;
+    case 'hw': location.href = 'file:///android_asset/test.html'; break;
+    case 'tab': closeModal(); setTab(d.t); break;
+    case 'table': { const t = S.tables.find(x => x.id == d.id); if (t.order_id) openOrder(t.order_id); else if (t.reserved) resTableModal(t); else startCompose({ mode: 'new', type: 'dine_in', table_id: t.id, table_number: t.number }); break; }
+    case 'openorder': openOrder(d.id); break;
+    case 'newtk': modal('<h2 class="h2">New order</h2><div class="btns"><button data-act="tk" data-t="takeout">Take-out</button><button data-act="tk" data-t="delivery">Delivery</button></div><div class="btns"><button class="gray" data-act="closemodal">Cancel</button></div>'); break;
+    case 'tk': closeModal(); startCompose({ mode: 'new', type: d.t }); break;
+    case 'back': if (S.view === 'bill') { S.tab === 'cashier' ? setTab('cashier') : openOrder(S.pay.order_id); } else if (S.view === 'compose') { $('#main').style.padding = ''; S.cmp = null; if (S.order && S.cmpFromOrder) { S.cmpFromOrder = false; openOrder(S.order.id); } else goHome(); } else goHome(); break;
+    case 'closemodal': closeModal(); break;
+    case 'void': voidModal(d.id); break;
+    case 'vreason': $('#vr').value = d.r; break;
+    case 'voidgo': voidGo(d.id); break;
+    case 'bill': { const r = await api('orders/' + S.order.id + '/bill-request', 'POST'); toast(r.ok ? 'Bill requested. The cashier knows.' : 'Could not request the bill'); openOrder(S.order.id); break; }
+    case 'move': moveModal(); break;
+    case 'movego': { const r = await api('orders/' + S.order.id + '/move', 'POST', { table_id: +d.id }); closeModal(); if (r.ok) { toast(r.data.merged ? 'Tables merged' : 'Moved'); openOrder(S.order.id); } else toast('Could not move: ' + (r.data.error || 'error')); break; }
+    case 'handover': handoverModal(); break;
+    case 'handgo': { const r = await api('orders/' + S.order.id + '/handover', 'POST', { waiter_id: +d.id }); closeModal(); toast(r.ok ? 'Handed over' : 'Could not hand over'); if (r.ok) goHome(); break; }
+    case 'paybill': openBill(d.id); break;
+    case 'payadd': payAdd(); break;
+    case 'paygo': payGo(); break;
+    case 'paym': S.pay.method = d.m; renderBill(); break;
+    case 'payrm': S.pay.splits[S.pay.cur].pays.splice(+d.i, 1); S.pay.amount = ''; renderBill(); break;
+    case 'splitmode': { const P = S.pay; P.splitMode = !P.splitMode; if (!P.splitMode) P.splits = [{ lines: S.bill.lines.map(l => l.id), senior: null, pays: [] }]; else if (P.splits.length < 2) P.splits.push({ lines: [], senior: null, pays: [] }); P.cur = 0; renderBill(); break; }
+    case 'addsplit': if (S.pay.splits.length < 8) S.pay.splits.push({ lines: [], senior: null, pays: [] }); renderBill(); break;
+    case 'assign': { const P = S.pay, id = +d.id; P.splits.forEach(x => { x.lines = x.lines.filter(v => v !== id); x.senior = x.senior; }); P.splits[+d.s].lines.push(id); P.splits.forEach(x => { if (x.senior && !x.lines.some(v => LN(v).discountable)) x.senior = null; }); renderBill(); break; }
+    case 'tabsplit': S.pay.cur = +d.s; S.pay.amount = ''; renderBill(); break;
+    case 'memopen': modal(`<h2 class="h2">Member voucher</h2><p class="sub">Type the 5-character code under the member's QR. (If the waiter already scanned it, it is already on this bill.)</p><input id="mbc" maxlength="8" placeholder="Code" autocapitalize="characters" style="text-transform:uppercase;font-size:24px;text-align:center;letter-spacing:4px"><div class="btns"><button class="gray" data-act="closemodal">Cancel</button><button data-act="memgo">Use</button></div>`); break;
+    case 'memgo': memCheck(); break;
+    case 'vrm': { const r = await api('orders/' + S.bill.order_id + '/voucher', 'DELETE'); if (r.ok) openBill(S.bill.order_id); break; }
+    case 'sntog': { const sp = S.pay.splits[S.pay.cur];
+      if (hasV()) { if (!confirm('A member voucher is on this bill. Remove it and use Senior/PWD instead?')) break; const r = await api('orders/' + S.bill.order_id + '/voucher', 'DELETE'); if (!r.ok) break; await openBill(S.bill.order_id); S.pay.splits[0].senior = { pax: S.bill.guests || 1, count: 1, override: '', reason: '' }; renderBill(); break; }
+      sp.senior = sp.senior ? null : { pax: S.bill.guests || 1, count: 1, override: '', reason: '' }; renderBill(); break; }
+    case 'snover': { e.preventDefault(); const sp = S.pay.splits[S.pay.cur]; sp.senior.override = String(sComputed(sp)); renderBill(); break; }
+    case 'scanvoucher': scanModal(d.id ? +d.id : null); break;
+    case 'prfix': if (window.BPKNative) printSetup(); else toast('Open the Printers button in the staff app on the tablet that is paired with the printer.', 5000); break;
+    case 'scanstart': scanStart(); break;
+    case 'scango': scanGo(); break;
+    case 'paytend': { const t = $('#ptend'); if (t) { t.value = d.v === 'x' ? (+$('#pamt').value + (+$('#ptip').value || 0)) : d.v; payCalc(); } break; }
+    case 'custom': customModal(); break;
+    case 'customgo': customGo(); break;
+    case 'rcpt': showReceipt(d.id); break;
+    case 'refund': refundModal(d.id); break;
+    case 'refundgo': refundGo(d.id); break;
+    case 'additems': { const o = S.order; S.cmpFromOrder = true; startCompose({ mode: 'add', order_id: o.id, type: o.type, table_id: o.table_id, table_number: o.table_number }); break; }
+    case 'gset': groupModal(d.id); break;
+    case 'gok': groupOk(d.id); break;
+    case 'cat': S.cmp.cat = d.id === 'gm' ? 'gm' : +d.id; S.cmp.q = ''; { const s = $('#srch'); if (s) s.value = ''; } renderRail(); renderItems(); break;
+    case 'item': { const it = S.menu.items.find(i => i.id == d.id); if (it.variants.length === 1) { const v = it.variants[0], c = S.cmp; c.lines.push({ variant_id: v.id, item_id: it.id, name: it.name, label: v.label, price: v.price, qty: 1, notes: '', seat: '', take_out: false, rush: false, allergy: false }); renderCart(); toast('Added: ' + it.name, 900); } else lineModal(it, null); break; }
+    case 'editline': { const l = S.cmp.lines[+d.i]; lineModal(S.menu.items.find(i => i.id == l.item_id), +d.i); break; }
+    case 'mq': { const n = $('#mqn'); n.textContent = Math.max(1, (parseInt(n.textContent, 10) || 1) + +d.d); break; }
+    case 'mok': modalOk(d.id, d.i); break;
+    case 'ldel': S.cmp.lines.splice(+d.i, 1); closeModal(); renderCart(); break;
+    case 'linc': S.cmp.lines[+d.i].qty++; renderCart(); break;
+    case 'ldec': { const l = S.cmp.lines[+d.i]; if (l.qty > 1) l.qty--; else S.cmp.lines.splice(+d.i, 1); renderCart(); break; }
+    case 'ginc': S.cmp.guests = Math.min(99, S.cmp.guests + 1); renderCart(); break;
+    case 'gdec': S.cmp.guests = Math.max(1, S.cmp.guests - 1); renderCart(); break;
+    case 'cartopen': $('#cart').classList.add('open'); break;
+    case 'cartclose': $('#cart').classList.remove('open'); break;
+    case 'send': sendCmp(); break;
+    case 'kst': { const r = await api('orders/' + d.o + '/batch/' + d.b, 'POST', { status: d.s }); if (!r.ok) toast('Could not update'); S.ksig = ''; pollKitchen(); break; }
+    case 'voidseen': { await api('kitchen/void-seen', 'POST', { ids: [+d.id] }); S.ksig = ''; pollKitchen(); break; }
+    case 'service': { const r = await api('service-calls', 'POST', {}); toast(r.ok ? 'Service called' : 'Could not call service'); b.disabled = true; setTimeout(() => b.disabled = false, 5000); break; }
+    case 'stockmodal': stockModal(); break;
+    case 'stocktoggle': { const r = await api('items/' + d.id + '/stock', 'PUT', { in_stock: +d.v }); if (r.ok) { const it = S.menu.items.find(i => i.id == d.id); it.in_stock = +d.v; S.stockDraw(); } else toast('Could not change stock'); break; }
+    case 'seen': { await api('order-items/seen', 'POST', { ids: d.ids.split(',').map(Number) }); S.ralert = []; pollAlerts(); break; }
+    case 'svcack': { await api('service-calls/' + d.id + '/ack', 'POST'); hideSvc(); pollAlerts(); break; }
+  }
+});
+
+// ---------- cashier: bill, payment, receipt, today ----------
+async function openBill(id) {
+  const r = await api('orders/' + id + '/bill'); if (!r.ok) { toast('Could not open the bill'); return; }
+  S.bill = r.data; S.pay = { order_id: +id, splits: [{ lines: r.data.lines.map(l => l.id), senior: null, pays: [] }], cur: 0, method: 'cash', amount: '', splitMode: false };
+  S.view = 'bill'; renderBill();
+}
+const r2 = x => Math.round(x * 100) / 100;
+const LN = id => S.bill.lines.find(l => l.id === id);
+const sSub = sp => r2(sp.lines.reduce((a, id) => a + LN(id).amount, 0));
+function sComputed(sp) {
+  if (!sp.senior) return 0; const base = sp.lines.reduce((a, id) => a + (LN(id).discountable ? LN(id).amount : 0), 0);
+  const n = +sp.senior.count || 0, pax = +sp.senior.pax || 0; return pax > 0 && n > 0 && n <= pax ? r2(base / pax * n * 0.2) : 0;
+}
+const hasV = () => !!(S.bill.vouchers && S.bill.vouchers.length);
+const vDisc = sp => hasV() && sp === S.pay.splits[0] ? S.bill.voucher_discount : 0;
+const sDisc = sp => hasV() ? vDisc(sp) : !sp.senior ? 0 : (sp.senior.override !== '' ? r2(+sp.senior.override || 0) : sComputed(sp));
+const sTotal = sp => r2(sSub(sp) - sDisc(sp));
+const sPaid = sp => r2(sp.pays.reduce((a, p) => a + p.amount, 0));
+const dpShare = sp => { let rem = S.bill.downpayment || 0; for (const x of S.pay.splits) { const sh = Math.min(rem, sTotal(x)); if (x === sp) return r2(sh); rem = r2(rem - sh); } return 0; };
+const sRem = sp => r2(sTotal(sp) - dpShare(sp) - sPaid(sp));
+const anyPaid = () => S.pay.splits.some(sp => sp.pays.length);
+const VERR = { promo_conditions: 'The order does not meet the voucher conditions (minimum spend or the dishes it needs).', promo_not_in_use_window: 'This voucher cannot be used today.', promo_not_in_hours: 'This voucher cannot be used at this hour.', promo_sold_out: 'This voucher is sold out.', promo_member_limit: 'The member already used this voucher.', promo_level: 'This voucher is not for this member level.', promo_paused: 'This voucher is paused.', promo_inactive: 'This membership is not active.', voucher_no_combine: 'These two vouchers cannot be used together.', voucher_unavailable: 'That voucher cannot be used now.', member_inactive: 'This membership is not active.', code_invalid_or_expired: 'That code is not valid or has expired (10 minutes). Ask the member to open the QR again.', other_member: 'A different member is already attached to this order.', order_closed: 'This order is closed.' };
+const opts = (n, sel, from) => Array.from({ length: n - (from || 1) + 1 }, (_, i) => (from || 1) + i).map(v => `<option value="${v}" ${v == sel ? 'selected' : ''}>${v}</option>`).join('');
+function renderBill() {
+  const b = S.bill, P = S.pay, sp = P.splits[P.cur], rem = sRem(sp), many = P.splits.length > 1;
+  const title = b.type === 'dine_in' ? (b.table_number ? 'Table ' + esc(b.table_number) : 'Reservation · ' + esc(b.reservation_name)) : (b.type === 'delivery' ? 'Delivery' : 'Take-out') + ' · ' + esc(b.customer_name);
+  const grand = r2(P.splits.reduce((a, x) => a + sTotal(x), 0)), allPaid = P.splits.every(x => x.lines.length && sRem(x) === 0 && sTotal(x) > 0);
+  const hasDisc = sp.lines.some(id => LN(id).discountable), vOn = hasV() && P.cur === 0;
+  const left = `<div class="card"><div class="row"><h2 class="h2">${title}</h2><span class="sp"></span>${anyPaid() || hasV() ? '' : `<button class="sec" data-act="splitmode" style="min-height:40px">${P.splitMode ? 'One bill' : 'Split the bill'}</button>`}<button class="sec" data-act="custom" style="min-height:40px">+ Custom line</button></div>
+  ${b.lines.map(l => { const at = P.splits.findIndex(x => x.lines.includes(l.id)); return `<div class="line row"><span style="flex:1">${l.qty}× ${esc(l.name)} <span class="sub">${esc(l.label)}${l.custom ? ' · custom' : ''}${l.discountable ? ' · Senior/PWD' : ''}</span></span>${P.splitMode && !anyPaid() ? P.splits.map((x, k) => `<button class="${at === k ? '' : 'gray'}" style="min-width:42px;min-height:38px;padding:0" data-act="assign" data-id="${l.id}" data-s="${k}">${k + 1}</button>`).join('') : ''}<b style="min-width:84px;text-align:right">${peso(l.amount)}</b></div>`; }).join('')}
+  ${P.splitMode && !anyPaid() ? '<div class="btns"><button class="sec" data-act="addsplit">+ Add a split</button></div>' : ''}
+  <div class="row line"><b style="font-size:20px">Total</b><span class="sp"></span><b style="font-size:24px">${peso(grand)}</b></div>${b.downpayment ? `<div class="row"><span>Downpayment</span><span class="sp"></span><b>−${peso(Math.min(b.downpayment, grand))}</b></div><div class="row"><b>Balance due</b><span class="sp"></span><b style="font-size:20px">${peso(Math.max(0, r2(grand - b.downpayment)))}</b></div>` : ''}</div>`;
+  const sn = sp.senior && !hasV() ? `<div style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px"><div class="sel2"><label>People at the table<select id="snpax" ${sp.pays.length ? 'disabled' : ''}>${opts(Math.max(30, +sp.senior.pax || 0), sp.senior.pax)}</select></label><label>Senior / PWD IDs surrendered<select id="sncnt" ${sp.pays.length ? 'disabled' : ''}>${opts(Math.max(1, +sp.senior.pax || 1), sp.senior.count)}</select></label></div><div class="sub" id="sndisc"></div></div>` : '';
+  const vbox = vOn ? `<div style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px"><b>⭐ ${esc(b.voucher_member)}</b><div class="sub">${b.vouchers.map(v => esc(v.title)).join(' + ')}</div>${b.voucher_problem ? `<div style="color:var(--red);font-weight:700">${esc(VERR[b.voucher_problem] || b.voucher_problem)}</div>` : `<div>Discount <b>−${peso(b.voucher_discount)}</b> · points are added automatically</div>`}${sp.pays.length ? '' : '<div class="btns"><button class="gray" data-act="vrm" style="min-height:40px">Remove voucher</button></div>'}</div>` : '';
+  const pays = sp.pays.length ? `<div style="margin-top:8px;border-top:1px solid var(--line);padding-top:6px"><b>Payments${many ? ' (split ' + (P.cur + 1) + ')' : ''}</b>${sp.pays.map((x, i) => `<div class="line row"><span style="flex:1">${x.method === 'cash' ? 'Cash' : 'GCash'}${x.reference ? ' · ' + esc(x.reference) : ''}${x.tip ? ' · tip ' + peso(x.tip) : ''}</span><b>${peso(x.amount)}</b>${x.method === 'cash' && x.tendered > x.amount + x.tip ? `<span class="sub">change ${peso(x.tendered - x.amount - x.tip)}</span>` : ''}<button class="gray" style="min-height:36px" data-act="payrm" data-i="${i}">✕</button></div>`).join('')}</div>` : '';
+  const payBox = rem > 0 ? `<div style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px"><div class="row"><b>Balance to pay</b><span class="sp"></span><b class="bill-total">${peso(rem)}</b></div>
+    <div class="btns" style="margin-top:6px"><button class="${P.method === 'cash' ? '' : 'sec'}" data-act="paym" data-m="cash">Cash</button><button class="${P.method === 'gcash' ? '' : 'sec'}" data-act="paym" data-m="gcash">GCash</button></div>
+    <div class="pin3" style="margin-top:8px"><label class="sub">Amount<input id="pamt" type="number" inputmode="decimal" value="${P.amount !== '' ? P.amount : rem}"></label><label class="sub">Tip<input id="ptip" type="number" inputmode="decimal" placeholder="0"></label>${P.method === 'cash' ? '<label class="sub">Cash received<input id="ptend" type="number" inputmode="decimal" placeholder="Exact"></label>' : '<label class="sub">GCash ref.<input id="pref" placeholder="Optional"></label>'}</div></div>` : '';
+  const foot = `<div class="pin-foot">${rem > 0 ? `${P.method === 'cash' ? '<div class="row"><span class="sub">Change due</span><span class="sp"></span><span class="chg" id="pchg"></span></div>' : ''}<button data-act="payadd" class="green" style="width:100%;margin-top:6px;min-height:58px;font-size:18px">Add payment</button>` : ''}${allPaid ? `<button class="green" data-act="paygo" style="width:100%;min-height:62px;font-size:20px;margin-top:6px">Complete payment ${peso(grand)}</button>` : ''}</div>`;
+  const right = `${many ? `<div class="btns" style="margin:0 0 8px">${P.splits.map((x, k) => `<button class="${P.cur === k ? '' : 'sec'}" data-act="tabsplit" data-s="${k}">Split ${k + 1} · ${peso(sTotal(x))}${sRem(x) === 0 && x.pays.length ? ' ✓' : ''}</button>`).join('')}</div>` : ''}
+  ${dpShare(sp) > 0 ? `<div class="card" style="border:2px solid var(--green)"><b>Downpayment${b.reservation_name ? ' (' + esc(b.reservation_name) + ')' : ''}: −${peso(dpShare(sp))}</b></div>` : ''}
+  <div class="card"><div class="row"><span class="sub">${many ? 'Split ' + (P.cur + 1) : 'Bill'} amount</span><span class="sp"></span><b class="bill-total">${peso(sSub(sp))}</b></div>
+  <div class="btns" style="margin-top:4px">${hasDisc && !sp.pays.length ? `<button class="${sp.senior && !hasV() ? '' : 'sec'}" data-act="sntog" style="min-height:44px">Senior / PWD</button>` : ''}${!sp.pays.length && !hasV() && !P.splitMode ? '<button class="sec" data-act="memopen" style="min-height:44px">Member</button>' : ''}</div>
+  ${sn}${vbox}${sDisc(sp) > 0 ? `<div class="row" style="margin-top:6px"><span>Discount</span><span class="sp"></span><b style="color:var(--green)">−${peso(sDisc(sp))}</b></div>` : ''}${pays}${payBox}${foot}</div>`;
+  $('#main').innerHTML = `<div class="row" style="margin-bottom:10px"><button class="gray" data-act="back">← Back</button><span class="sp"></span><span class="tag b">${esc(b.order_no)}</span></div><div class="bl2"><div class="col">${left}</div><div class="col">${right}</div></div>`;
+  if (rem > 0) ['pamt', 'ptip', 'ptend'].forEach(id => { const e = $('#' + id); if (e) e.addEventListener('input', payCalc); });
+  payCalc();
+  if (sp.senior && !hasV()) {
+    const upd = () => { const e = $('#sndisc'); if (!e) return; const c = sComputed(sp);
+      e.innerHTML = `Discount: <b>${peso(sDisc(sp))}</b>${sp.senior.override !== '' ? ' (changed by hand, computed ' + peso(c) + ')' : ''}${sp.pays.length ? '' : ' · <a href="#" data-act="snover">change the amount</a>'}${sp.senior.override !== '' && !sp.pays.length ? `<div class="row" style="margin-top:6px"><input id="snov" type="number" inputmode="decimal" value="${esc(sp.senior.override)}" placeholder="New amount"><input id="snrs" value="${esc(sp.senior.reason || '')}" placeholder="Reason (required)"></div>` : ''}`;
+      const o = $('#snov'); if (o) { o.addEventListener('input', () => { sp.senior.override = o.value; }); o.addEventListener('change', () => renderBill()); } const rs = $('#snrs'); if (rs) rs.addEventListener('input', () => { sp.senior.reason = rs.value; }); };
+    upd();
+    $('#snpax').addEventListener('change', e => { sp.senior.pax = +e.target.value; if (+sp.senior.count > sp.senior.pax) sp.senior.count = sp.senior.pax; renderBill(); });
+    $('#sncnt').addEventListener('change', e => { sp.senior.count = +e.target.value; renderBill(); });
+  }
+}
+function payCalc() {
+  const e = $('#pchg'); if (!e || !$('#pamt')) return; const amt = +$('#pamt').value || 0, tip = +$('#ptip').value || 0, t = $('#ptend');
+  const got = t && t.value !== '' ? +t.value : amt + tip; e.textContent = got + 0.001 < amt + tip ? 'Short ' + peso(amt + tip - got) : peso(got - amt - tip);
+}
+function payAdd() {
+  const P = S.pay, sp = P.splits[P.cur], rem = sRem(sp), amt = r2(+$('#pamt').value || 0), tip = r2(+$('#ptip').value || 0);
+  if (sp.senior && !hasV() && (sComputed(sp) <= 0 && sp.senior.override === '')) { toast('Please choose the number of people and the Senior/PWD IDs.'); return; }
+  if (sp.senior && sp.senior.override !== '' && !(sp.senior.reason || '').trim()) { toast('Please give a reason for the changed discount.'); return; }
+  if (amt <= 0) { toast('Please enter the amount.'); return; }
+  if (amt > rem + 0.001) { toast('That is more than the balance (' + peso(rem) + ').'); return; }
+  let tend = amt, ref = '';
+  if (P.method === 'cash') { const t = $('#ptend').value; tend = t === '' ? amt + tip : +t; if (tend + 0.001 < amt + tip) { toast('The cash received is not enough.'); return; } }
+  else ref = $('#pref').value.trim();
+  sp.pays.push({ method: P.method, amount: amt, tip, tendered: tend, reference: ref }); P.amount = ''; renderBill();
+}
+async function payGo() {
+  const P = S.pay, b = S.bill;
+  const splits = P.splits.map(sp => ({ line_ids: sp.lines, payments: sp.pays,
+    senior: sp.senior && !hasV() ? { pax: +sp.senior.pax, count: +sp.senior.count, override: sp.senior.override === '' ? null : +sp.senior.override, reason: sp.senior.reason || '' } : null }));
+  const r = await api('orders/' + b.order_id + '/pay', 'POST', { splits });
+  if (r.ok) { showReceipt(null, r.data.receipt, true); if (r.data.free_prestige > 0) toast('This bill includes ' + r.data.free_prestige + ' FREE Prestige membership(s). Ask the guest to register, then issue a Group Meal code in Members.', 12000); }
+  else toast(r.data.error === 'amount_mismatch' ? 'The amounts do not match. Open the bill again.' : r.data.error === 'already_paid' ? 'This bill is already paid.' : r.data.error === 'reason_required' ? 'Please give a reason for the changed discount.' : r.data.error === 'code_invalid_or_expired' ? 'The member code expired (10 minutes). Remove the member and enter a new code.' : r.data.error === 'voucher_unavailable' ? 'That voucher cannot be used now.' : r.data.error === 'member_inactive' ? 'This membership is not active.' : 'Could not complete: ' + (r.data.error || 'error'), 4000);
+}
+function receiptHtml(r) {
+  const bz = r.business, many = r.splits.length > 1;
+  const one = sp => { const change = sp.payments.filter(p => p.method === 'cash').reduce((a, p) => a + Math.max(0, p.tendered - p.amount - p.tip), 0), tip = sp.payments.reduce((a, p) => a + p.tip, 0);
+    return `<div style="font-family:ui-monospace,Menlo,monospace;font-size:14px;line-height:1.45"><div style="text-align:center"><b>${esc(bz.name)}</b><br>${esc(bz.address)}<br>${esc(bz.phone)}</div><hr>
+  Bill ${esc(r.order_no)}${many ? ' · split ' + sp.split_no + ' of ' + r.splits.length : ''} · ${r.type === 'dine_in' ? 'Table ' + esc(r.table_number) : esc(r.type)}<br>${esc((r.bill && r.bill.paid_at) || '')} · ${esc((r.bill && r.bill.paid_by_name) || '')}<hr>
+  ${sp.lines.map(l => `<div style="display:flex;gap:8px"><span style="flex:1">${l.qty}× ${esc(l.name)}${l.label && l.label !== 'Custom' && l.label !== 'Group Meal' ? ' ' + esc(l.label) : ''}</span><span>${peso(l.amount)}</span></div>`).join('')}<hr>
+  ${sp.discount ? `<div style="display:flex"><span style="flex:1">${sp.loyalty_kind ? 'Member discount' : 'Senior/PWD discount'}</span><span>-${peso(sp.discount)}</span></div>` : ''}
+  <div style="display:flex"><b style="flex:1">TOTAL</b><b>${peso(sp.total)}</b></div>${sp.downpayment ? `<div style="display:flex"><span style="flex:1">Downpayment</span><span>-${peso(sp.downpayment)}</span></div>` : ''}
+  ${sp.payments.map(p => `<div style="display:flex"><span style="flex:1">${p.method === 'cash' ? 'Cash' : 'GCash'}${p.reference ? ' ' + esc(p.reference) : ''}</span><span>${peso(p.amount)}</span></div>`).join('')}
+  ${tip ? `<div style="display:flex"><span style="flex:1">Tip</span><span>${peso(tip)}</span></div>` : ''}${change ? `<div style="display:flex"><span style="flex:1">Change</span><span>${peso(change)}</span></div>` : ''}${sp.member_name ? `<div>Member: ${esc(sp.member_name)}${sp.points_earned ? ' · +' + sp.points_earned + ' pts' : ''}</div>` : ''}<hr>
+  <div style="text-align:center"><b>${esc(bz.notice)}</b><br>${esc(bz.footer)}${r.bill && r.bill.status === 'refunded' ? '<br><b style="color:#d93025">REFUNDED: ' + esc(r.bill.refund_reason) + '</b>' : ''}</div></div>`; };
+  return r.splits.map(one).join('<div style="border-top:2px dashed #999;margin:12px 0"></div>');
+}
+async function showReceipt(billId, data, justPaid) {
+  let r = data; if (!r) { const x = await api('bills/' + billId + '/receipt'); if (!x.ok) { toast('Could not open the receipt'); return; } r = x.data.receipt; }
+  const bid = r.bill && r.bill.id;
+  modal(`<h2 class="h2">${justPaid ? '✓ Paid' : 'Receipt'}</h2><div class="card" style="margin-top:8px">${receiptHtml(r)}</div>
+  <div class="btns"><button class="gray" data-act="rcptprint" data-id="${bid}">${justPaid ? 'Print again' : 'Print'}</button><button class="sec" data-act="smsrcpt" data-id="${bid}" data-ph="${esc((r.phone || r.customer_phone || ''))}">Text receipt</button>${!justPaid && r.bill && r.bill.status === 'paid' ? `<button class="red" data-act="refund" data-id="${bid}">Refund</button>` : ''}<button data-act="closemodal" onclick="if(S.view==='bill'){setTab(S.tab)}">Done</button></div>`);
+}
+function refundModal(id) {
+  modal(`<h2 class="h2">Refund this bill</h2><p class="sub">A reason is required. After today only the admin can refund.</p><input id="rfr" placeholder="Reason"><div class="btns"><button class="gray" data-act="closemodal">Cancel</button><button class="red" data-act="refundgo" data-id="${id}">Refund</button></div>`);
+}
+async function refundGo(id) {
+  const reason = $('#rfr').value.trim(); if (!reason) { toast('Please give a reason.'); return; }
+  const r = await api('bills/' + id + '/refund', 'POST', { reason });
+  if (r.ok) { closeModal(); toast('Refunded'); loadToday(); } else toast(r.data.error === 'refund_admin_only' ? 'Only the admin can refund after the day it was paid.' : 'Could not refund: ' + (r.data.error || 'error'), 4000);
+}
+function customModal() {
+  modal(`<h2 class="h2">Custom line</h2><p class="sub">For something that is not on the menu. Logged and shown to the owner.</p><input id="cl1" placeholder="Name"><input id="cl2" type="number" inputmode="decimal" placeholder="Price" style="margin-top:8px"><input id="cl3" placeholder="Reason (required)" style="margin-top:8px"><div class="btns"><button class="gray" data-act="closemodal">Cancel</button><button data-act="customgo">Add</button></div>`);
+}
+async function customGo() {
+  const r = await api('orders/' + S.bill.order_id + '/custom-line', 'POST', { name: $('#cl1').value, price: +$('#cl2').value, reason: $('#cl3').value });
+  if (r.ok) { closeModal(); openBill(S.bill.order_id); } else toast(r.data.error === 'reason_required' ? 'Please give a reason.' : 'Please check the name and price.');
+}
+async function loadToday() {
+  const [a, b] = await Promise.all([api('summary'), api('bills')]); const el = $('#tdy'); if (!el || !a.ok) return;
+  const d = a.data;
+  el.innerHTML = `<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr))">${[['Sales', peso(d.sales) + ' (' + d.bills + ' bills)'], ['Cash sales', peso(d.by_method.cash)], ['GCash', peso(d.by_method.gcash)], ['Expected cash', peso(d.expected_cash)], ['Tips (separate)', peso(d.tips)], ['Discounts', peso(d.discounts)], ['Downpayments received', peso(d.downpayments.cash + d.downpayments.gcash) + ' (cash ' + peso(d.downpayments.cash) + ')'], ['Refunds', peso(d.refunds.total) + ' (' + d.refunds.count + ')'], ['Voids', peso(d.voids.total) + ' (' + d.voids.count + ')'], ['Open orders', d.open_orders]].map(x => `<div class="card" style="margin:0"><div class="sub">${x[0]}</div><b style="font-size:18px">${x[1]}</b></div>`).join('')}</div>
+  <div class="card" style="margin-top:12px"><b>Bills today</b>${b.ok && b.data.bills.length ? b.data.bills.map(x => `<div class="line row" data-act="rcpt" data-id="${x.id}"><span style="flex:1">${esc(x.bill_no)} · ${x.table_number ? 'Table ' + x.table_number : esc(x.type)} <span class="sub">${esc(x.paid_at.slice(11, 16))}</span></span>${x.status === 'refunded' ? '<span class="tag r">REFUNDED</span>' : ''}<b>${peso(x.total)}</b></div>`).join('') : '<p class="mute">No bills yet.</p>'}</div>`;
+}
+
+// ---------- cashier: members ----------
+const LVN = { basic: 'Basic', prestige: 'Prestige', kaiser: 'Kaiser' };
+const vState = { ready: 'Ready to use', used_up: 'Allowance used up (still earns points)', not_started: 'Starts tomorrow (still earns points)', not_month: 'Not the birthday month', used: 'Already used', inactive: 'Member not active', expired: 'Only on the registration day' };
+const memCard = m => `<div class="card" style="margin:8px 0"><div class="row"><b class="h2">${esc(m.name)}</b><span class="tag b">${esc(LVN[m.level] || m.level)}</span>${m.status === 'pending' ? '<span class="tag y">PENDING</span>' : ''}${m.expired ? '<span class="tag r">EXPIRED</span>' : ''}<span class="sp"></span><span class="sub">${esc(m.phone)}</span></div>
+  <div class="sub">Points ${m.points} · fresh ${m.fresh} · valid until ${esc(m.expires_on)}${m.group_tag ? ' · from Group Meal' : ''}</div>
+  ${m.status === 'pending' ? `<div class="btns"><button data-act="actcode" data-id="${m.id}" data-free="0">Issue activation code (paid ₱499)</button><button class="sec" data-act="actcode" data-id="${m.id}" data-free="1">Free Prestige (Group Meal)</button></div>` : ''}</div>`;
+async function memSearch() {
+  const q = $('#mq').value.trim(), box = $('#mres'); if (q.length < 3) { box.innerHTML = '<p class="sub">Type at least 3 characters.</p>'; return; }
+  const r = await api('loyalty/search?q=' + encodeURIComponent(q)); if (!r.ok) { box.innerHTML = '<p class="sub">Could not search.</p>'; return; }
+  box.innerHTML = r.data.members.length ? r.data.members.map(memCard).join('') : '<p class="sub">No member found.</p>';
+}
+async function vResolve(code) {
+  const out = $('#vres'); if (!code) { toast('Please type or scan the code.'); return; }
+  const r = await api('loyalty/resolve', 'POST', { code });
+  if (!r.ok) { out.innerHTML = '<div class="card" style="background:var(--red2);margin-top:8px">That code is not valid or has expired (codes last 10 minutes). Ask the member to open the QR again.</div>'; return; }
+  const v = r.data.voucher;
+  out.innerHTML = memCard(r.data.member) + `<div class="card" style="margin:8px 0"><b>${esc(v.title)}</b> · ${v.kind === 'promo' ? esc(v.text) : v.percent + '% up to ' + peso(v.cap)}<div class="sub">${esc(vState[v.state] || v.state)}</div><div class="sub" style="margin-top:6px">To use it: open the bill, tap <b>Member</b> and type this code.</div></div>`;
+}
+async function memCheck() {
+  const code = $('#mbc').value.trim(); if (!code) { toast('Please type the code.'); return; }
+  const r = await api('orders/' + S.bill.order_id + '/voucher', 'POST', { code });
+  if (!r.ok) { toast(VERR[r.data.error] || 'Could not use that code.', 4000); return; }
+  closeModal(); toast('Voucher added: ' + r.data.voucher, 3000); openBill(S.bill.order_id);
+}
+function scanModal(orderId) {
+  S.scanOrder = orderId; const o = orderId && S.order && S.order.id == orderId ? S.order : null;
+  modal(`<h2 class="h2">Member voucher</h2><p class="sub">Put the voucher on the table's bill. The cashier sees it at once.</p>
+  <label class="sub">Table number</label><input id="svt" type="number" inputmode="numeric" value="${o && o.table_number ? esc(o.table_number) : ''}" ${o && o.table_number ? 'disabled' : ''}>
+  <div class="btns"><button class="sec" data-act="scanstart">📷 Scan the QR code</button></div><video id="svid" playsinline muted style="display:none;width:100%;border-radius:10px;margin-top:8px"></video>
+  <label class="sub" style="margin-top:8px;display:block">…or type the 5-character code</label><input id="svc" maxlength="8" autocapitalize="characters" style="text-transform:uppercase;font-size:24px;text-align:center;letter-spacing:4px">
+  <div class="btns"><button class="gray" data-act="closemodal" onclick="vStop()">Cancel</button><button data-act="scango">Add voucher</button></div>`);
+}
+async function scanStart() {
+  const vid = $('#svid');
+  try { vStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }); } catch (e) { toast('Please allow the camera, or type the code.', 3500); return; }
+  vid.srcObject = vStream; vid.style.display = 'block'; await vid.play();
+  const det = 'BarcodeDetector' in window ? new BarcodeDetector({ formats: ['qr_code'] }) : null, cv = document.createElement('canvas'), cx = cv.getContext('2d', { willReadFrequently: true });
+  if (!det && !window.jsQR) { toast('This device cannot scan. Please type the code.', 3500); vStop(); return; }
+  const got = raw => { $('#svc').value = String(raw).replace(/^BPK/, ''); vStop(); scanGo(); };
+  const loop = async () => { if (!vStream) return;
+    try { if (det) { const f = await det.detect(vid); if (f.length) return got(f[0].rawValue); }
+      else if (vid.videoWidth) { cv.width = vid.videoWidth; cv.height = vid.videoHeight; cx.drawImage(vid, 0, 0); const q = jsQR(cx.getImageData(0, 0, cv.width, cv.height).data, cv.width, cv.height); if (q && q.data) return got(q.data); } } catch (e) {}
+    setTimeout(loop, 250); }; loop();
+}
+async function scanGo() {
+  const code = ($('#svc').value || '').trim(); if (!code) { toast('Please scan or type the code.'); return; }
+  let oid = S.scanOrder;
+  if (!oid) {
+    const n = $('#svt').value.trim(); if (!n) { toast('Please enter the table number.'); return; }
+    const t = (S.tables || []).find(x => String(x.number) === n); if (!t) { toast('There is no table ' + n + '.'); return; }
+    if (!t.order_id) { toast('Table ' + n + ' has no open order yet. Take the order first.', 4000); return; }
+    oid = t.order_id;
+  }
+  const r = await api('orders/' + oid + '/voucher', 'POST', { code });
+  if (!r.ok) { toast(VERR[r.data.error] || 'Could not add the voucher.', 4000); return; }
+  vStop(); closeModal(); toast('✓ ' + r.data.voucher + ' added for ' + r.data.member + (r.data.discount ? ' · −' + peso(r.data.discount) : ''), 4000);
+}
+let vStream = null;
+async function vScan() {
+  const vid = $('#vvid');
+  if (!('BarcodeDetector' in window)) { toast('This device cannot scan. Please type the code.', 3500); return; }
+  try { vStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }); } catch (e) { toast('Please allow the camera, or type the code.', 3500); return; }
+  vid.srcObject = vStream; vid.style.display = 'block'; await vid.play();
+  const det = new BarcodeDetector({ formats: ['qr_code'] });
+  const loop = async () => {
+    if (!vStream) return;
+    try { const f = await det.detect(vid); if (f.length) { const code = f[0].rawValue; vStop(); $('#vc').value = code.replace(/^BPK/, ''); vResolve(code); return; } } catch (e) {}
+    setTimeout(loop, 300);
+  }; loop();
+}
+function vStop() { if (vStream) { vStream.getTracks().forEach(t => t.stop()); vStream = null; } const v = $('#vvid'); if (v) v.style.display = 'none'; }
+
+// ---------- push-to-talk ----------
+const QUICK = { waiter: ['Rush my table', 'Please check my order', 'Customer wants to cancel', 'I need a few more minutes'], kitchen: ['Ready in 5 minutes', 'Ready in 10 minutes', 'Out of stock', 'Please come to the kitchen'] };
+const PTT = { last: null, target: null, rec: null, chunks: [], stream: null, holding: false, cancel: false, lock: false, t0: 0, timer: null, sx: 0, sy: 0 };
+function pttRole() { return S.user && (S.user.role === 'waiter' || S.user.role === 'kitchen'); }
+function pttLabel() {
+  if (S.user.role === 'waiter') { const o = S.view === 'order' && S.order ? S.order : S.cmp; if (o && (o.table_number || o.table_id)) return 'Table ' + (o.table_number || ''); if (o && o.customer_name) return o.customer_name; }
+  return '';
+}
+function initPtt() {
+  PTT.last = null; PTT.target = null;
+  const bar = $('#pttbar'); if (!pttRole()) { bar.style.display = 'none'; return; }
+  bar.style.display = 'flex'; drawPtt();
+}
+function drawPtt() {
+  const bar = $('#pttbar'); if (!pttRole()) return;
+  const k = S.user.role === 'kitchen', can = !k || PTT.target;
+  bar.innerHTML = `<div class="lbl" id="plbl"></div>${can ? '<button class="quick" data-act="quick">💬</button>' : ''}<button class="mic" id="micbtn" style="${can ? '' : 'opacity:.35'}" aria-label="Hold to talk">🎤</button>`;
+  const lbl = $('#plbl'); if (k) { lbl.style.display = 'block'; lbl.textContent = PTT.target ? 'Reply to ' + PTT.target.name : 'Waiting for a waiter to call'; }
+  const mb = $('#micbtn');
+  mb.addEventListener('pointerdown', e => { e.preventDefault(); if (!can) { toast('The kitchen can reply once a waiter calls.'); return; } try { mb.setPointerCapture(e.pointerId); } catch (x) {} pttStart(e); });
+  mb.addEventListener('pointermove', pttMove); mb.addEventListener('pointerup', pttUp); mb.addEventListener('pointercancel', pttUp);
+  mb.addEventListener('contextmenu', e => e.preventDefault());
+}
+async function pttStart(e) {
+  unlock(); if (PTT.rec || PTT.holding) return;
+  PTT.holding = true; PTT.cancel = false; PTT.lock = false; PTT.sx = e.clientX; PTT.sy = e.clientY;
+  try { PTT.stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+  catch (err) { PTT.holding = false; toast('Please allow the microphone, then hold the button again.', 4000); return; }
+  if (!PTT.holding) { PTT.stream.getTracks().forEach(t => t.stop()); return; }
+  const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'];
+  const mt = (window.MediaRecorder && types.find(t => MediaRecorder.isTypeSupported(t))) || '';
+  if (!window.MediaRecorder) { PTT.holding = false; toast('This device cannot record voice.', 4000); return; }
+  PTT.chunks = []; PTT.rec = new MediaRecorder(PTT.stream, mt ? { mimeType: mt } : {});
+  PTT.rec.ondataavailable = ev => { if (ev.data && ev.data.size) PTT.chunks.push(ev.data); };
+  PTT.rec.onstop = pttFinish; PTT.rec.start(); PTT.t0 = Date.now(); ding();
+  $('#micbtn').classList.add('rec'); drawRec();
+  PTT.timer = setInterval(() => { drawRec(); if (Date.now() - PTT.t0 >= 60000) pttStop(false); }, 250);
+}
+function drawRec() {
+  const sec = Math.floor((Date.now() - PTT.t0) / 1000), o = $('#recov'); o.style.display = 'block';
+  o.innerHTML = PTT.lock ? `<b>● ${sec}s</b>Recording locked<div class="btns"><button class="gray" data-act="pttcancel">Cancel</button><button class="green" data-act="pttsend">Send</button></div>`
+    : `<b>● ${sec}s</b>${PTT.cancel ? '<span style="color:#ffb4ab">Release to cancel</span>' : 'Release to send<br><small>Slide left to cancel · slide up to lock</small>'}`;
+}
+function pttMove(e) {
+  if (!PTT.rec || PTT.lock) return;
+  const dx = e.clientX - PTT.sx, dy = e.clientY - PTT.sy;
+  PTT.cancel = dx < -80;
+  if (dy < -80 && !PTT.cancel) PTT.lock = true;
+  drawRec();
+}
+function pttUp() { PTT.holding = false; if (PTT.rec && !PTT.lock) pttStop(PTT.cancel); }
+function pttStop(cancel) { if (!PTT.rec) return; PTT.cancel = cancel; PTT.lock = false; try { PTT.rec.stop(); } catch (e) { pttFinish(); } }
+async function pttFinish() {
+  clearInterval(PTT.timer); $('#recov').style.display = 'none'; const mb = $('#micbtn'); if (mb) mb.classList.remove('rec');
+  if (PTT.stream) PTT.stream.getTracks().forEach(t => t.stop());
+  const dur = Math.round((Date.now() - PTT.t0) / 1000), blob = new Blob(PTT.chunks, { type: (PTT.rec && PTT.rec.mimeType) || 'audio/webm' });
+  const cancel = PTT.cancel; PTT.rec = null; PTT.stream = null; PTT.holding = false;
+  if (cancel) { toast('Cancelled'); return; }
+  if (dur < 1 || blob.size < 300) { toast('Too short. Hold the button while you talk.'); return; }
+  const q = new URLSearchParams({ dur: dur, table: pttLabel() }); if (S.user.role === 'kitchen') q.set('to', PTT.target.id);
+  try {
+    const r = await fetch(API + 'voice?' + q, { method: 'POST', headers: { 'Content-Type': blob.type.split(';')[0] || 'audio/webm', Authorization: 'Bearer ' + S.token }, body: blob });
+    toast(r.ok ? 'Sent ✓' : 'Could not send the voice message.');
+  } catch (e) { toast('No connection. The voice message was not sent.', 3500); }
+}
+async function sendQuick(text) {
+  const q = new URLSearchParams({ kind: 'text', table: pttLabel() }); if (S.user.role === 'kitchen') q.set('to', PTT.target.id);
+  const r = await fetch(API + 'voice?' + q, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + S.token }, body: JSON.stringify({ text }) }).catch(() => null);
+  toast(r && r.ok ? 'Sent ✓' : 'Could not send.');
+}
+async function playClip(id) {
+  try {
+    const r = await fetch(API + 'voice/' + id + '/audio', { headers: { Authorization: 'Bearer ' + S.token } });
+    if (!r.ok) { toast('That clip is no longer available.'); return false; }
+    const url = URL.createObjectURL(await r.blob()), a = new Audio(url); a.onended = () => URL.revokeObjectURL(url);
+    await a.play(); return true;
+  } catch (e) { return false; }
+}
+async function pollVoice() {
+  if (!S.token || !pttRole() || S.busy.v) return; S.busy.v = 1;
+  const r = await api('voice/inbox?after=' + (PTT.last == null ? -1 : PTT.last)); S.busy.v = 0;
+  if (!r.ok) return;
+  const first = PTT.last == null; PTT.last = r.data.last;
+  if (first) return;
+  r.data.messages.forEach(m => showVoice(m));
+}
+function showVoice(m) {
+  chime();
+  if (S.user.role === 'kitchen') { PTT.target = { id: m.from_id, name: m.from_name }; drawPtt(); }
+  const box = $('#vmsg'), d = document.createElement('div');
+  d.innerHTML = `<div style="flex:1"><b>${esc(m.from_name)}</b>${m.table_label ? ' · ' + esc(m.table_label) : ''}<div>${m.kind === 'text' ? esc(m.text) : '🔊 Voice message · ' + m.dur + 's'}</div></div>${m.kind === 'voice' ? '<button data-act="replay" data-id="' + m.id + '">▶</button>' : ''}<button class="gray" data-act="vdismiss">OK</button>`;
+  box.append(d); setTimeout(() => d.remove(), 25000);
+  while (box.children.length > 3) box.firstChild.remove();
+  if (m.kind === 'voice') setTimeout(async () => { const ok = await playClip(m.id); if (!ok) toast('Tap ▶ to hear the message.', 3000); }, 700);
+}
+function quickModal() {
+  const list = QUICK[S.user.role];
+  modal(`<h2 class="h2">Quick message${S.user.role === 'kitchen' ? ' to ' + esc(PTT.target ? PTT.target.name : '') : ' to the kitchen'}</h2><div class="btns" style="flex-direction:column">${list.map(t => `<button data-act="qsend" data-t="${esc(t)}" style="min-height:56px">${esc(t)}</button>`).join('')}</div><div class="btns"><button class="gray" data-act="closemodal">Close</button></div>`);
+}
+
+// ---------- main loop ----------
+setInterval(() => {
+  if (!S.token) return;
+  if (S.view === 'tables') pollTables(); else if (S.view === 'takeout') pollTakeout(); else if (S.view === 'order') refreshOrder();
+  else if (S.view === 'kitchen') pollKitchen(); else if (S.view === 'cashier') pollCashier();
+  pollAlerts(); pollVoice(); pollOnline();
+}, 2000);
+setInterval(() => { if (S.token && S.view !== 'compose') refreshMenu(); }, 30000);
+
+if (S.token && S.user) { api('me').then(r => { if (r.ok) { S.user = r.data.user; startApp(); } else showLogin(); }); } else showLogin();
+</script></body></html>

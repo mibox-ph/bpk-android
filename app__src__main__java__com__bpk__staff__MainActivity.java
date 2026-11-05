@@ -16,6 +16,8 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.telephony.SmsManager;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
@@ -46,6 +48,7 @@ public class MainActivity extends Activity {
     private static final String DEFAULT_SERVER = "https://mybpk.com";
     private static final String ASSET_PREFIX = "/android_asset/";
 
+    static volatile boolean inFront = false;
     private WebView web;
     private SharedPreferences prefs;
     private volatile String currentUrl = "";
@@ -57,6 +60,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        if (Build.VERSION.SDK_INT >= 27) { setShowWhenLocked(true); setTurnScreenOn(true); }
         prefs = getSharedPreferences("bpk", MODE_PRIVATE);
 
         web = new WebView(this);
@@ -119,6 +123,12 @@ public class MainActivity extends Activity {
         super.onSaveInstanceState(out);
         web.saveState(out);
     }
+
+    @Override
+    protected void onResume() { super.onResume(); inFront = true; }
+
+    @Override
+    protected void onPause() { inFront = false; super.onPause(); }
 
     @Override
     public void onBackPressed() {
@@ -264,6 +274,42 @@ public class MainActivity extends Activity {
     // ---- bridge exposed to the web pages -------------------------------
 
     private final class Bridge {
+        @JavascriptInterface
+        public void startAlerts(String token) {
+            if (!trustedCaller() || token == null || token.length() < 20) return;
+            prefs.edit().putString("alert_token", token).apply();
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                        requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 79);
+                    }
+                    try {
+                        Intent i = new Intent(MainActivity.this, OrderAlertService.class);
+                        startForegroundService(i);
+                    } catch (Exception ignored) { }
+                    try {
+                        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+                        if (pm != null && !pm.isIgnoringBatteryOptimizations(getPackageName()) && !prefs.getBoolean("asked_battery", false)) {
+                            prefs.edit().putBoolean("asked_battery", true).apply();
+                            Intent b = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:" + getPackageName()));
+                            startActivity(b);
+                        }
+                    } catch (Exception ignored) { }
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void stopAlerts() {
+            if (!trustedCaller()) return;
+            prefs.edit().remove("alert_token").apply();
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() { try { stopService(new Intent(MainActivity.this, OrderAlertService.class)); } catch (Exception ignored) { } }
+            });
+        }
+
         @JavascriptInterface
         public String getServer() {
             return trustedCaller() ? serverBase() : "";

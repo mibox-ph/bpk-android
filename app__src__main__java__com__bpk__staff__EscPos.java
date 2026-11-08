@@ -18,6 +18,7 @@ final class EscPos {
         return this;
     }
 
+    EscPos rawBytes(byte[] b) { out.write(b, 0, b.length); return this; }   // a ready-made picture command from the server
     EscPos align(int a) { return raw(0x1B, 0x61, a); }          // 0 left, 1 center, 2 right
     EscPos bold(boolean on) { return raw(0x1B, 0x45, on ? 1 : 0); }
     EscPos size(int n) { return raw(0x1D, 0x21, n); }           // 0 normal, 0x01 double height, 0x11 double both

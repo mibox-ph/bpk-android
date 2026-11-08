@@ -468,6 +468,8 @@ public class MainActivity extends Activity {
                                 p.align(0).rule(c.length() > 0 ? c.charAt(0) : '-');
                             } else if (t.equals("feed")) {
                                 p.feed(Math.min(10, o.optInt("n", 1)));
+                            } else if (t.equals("img")) {
+                                try { p.rawBytes(android.util.Base64.decode(o.optString("d"), android.util.Base64.DEFAULT)); } catch (Exception ignored) { }
                             } else if (t.equals("cut")) {
                                 p.cut();
                             }

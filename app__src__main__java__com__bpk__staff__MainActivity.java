@@ -213,7 +213,7 @@ public class MainActivity extends Activity {
         if (ad == null) throw new Exception("This device has no Bluetooth.");
         if (!ad.isEnabled()) throw new Exception("Bluetooth is turned off.");
         BluetoothDevice dev = ad.getRemoteDevice(address);
-        ad.cancelDiscovery();
+        try { ad.cancelDiscovery(); } catch (SecurityException ignored) { }   // needs the extra "scan" permission on Android 12+; not needed to print
         BluetoothSocket sock = null;
         try {
             sock = dev.createRfcommSocketToServiceRecord(SPP);

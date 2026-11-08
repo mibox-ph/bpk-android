@@ -106,7 +106,7 @@ public class OrderAlertService extends Service {
         nm.createNotificationChannel(oc);
     }
 
-    private void newOrder(int count) {
+    private void newOrder(int count, String title, String text) {
         // 1) turn the screen on
         try {
             PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
@@ -120,8 +120,8 @@ public class OrderAlertService extends Service {
         PendingIntent open = openApp();
         Notification n = new Notification.Builder(this, CH_ORDERS)
                 .setSmallIcon(android.R.drawable.ic_dialog_alert)
-                .setContentTitle("NEW ONLINE ORDER")
-                .setContentText(count > 1 ? count + " online orders are waiting. Tap to open." : "An online order is waiting. Tap to open.")
+                .setContentTitle(title != null ? title : "NEW ONLINE ORDER")
+                .setContentText(text != null ? text : count > 1 ? count + " online orders are waiting. Tap to open." : "An online order is waiting. Tap to open.")
                 .setCategory(Notification.CATEGORY_ALARM)
                 .setContentIntent(open)
                 .setFullScreenIntent(open, true)
@@ -180,11 +180,14 @@ public class OrderAlertService extends Service {
         String line;
         while ((line = br.readLine()) != null) sb.append(line);
         br.close();
-        JSONArray arr = new JSONObject(sb.toString()).getJSONArray("ids");
+        JSONObject jo = new JSONObject(sb.toString());
+        JSONArray arr = jo.getJSONArray("ids");
+        String title = jo.optString("title", null);
+        String text = jo.optString("text", null);
         Set<Integer> now = new HashSet<>();
         boolean fresh = false;
         for (int i = 0; i < arr.length(); i++) { int id = arr.getInt(i); now.add(id); if (!known.contains(id)) fresh = true; }
-        if (fresh && !first && !MainActivity.inFront) newOrder(now.size());
+        if (fresh && !first && !MainActivity.inFront) newOrder(now.size(), title, text);
         if (now.isEmpty() || MainActivity.inFront) { stopRing(); if (now.isEmpty()) ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel(12); }
         known.clear();
         known.addAll(now);

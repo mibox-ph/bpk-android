@@ -9,7 +9,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ServiceInfo;
+import android.content.res.AssetFileDescriptor;
 import android.media.AudioAttributes;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
@@ -41,8 +44,10 @@ public class OrderAlertService extends Service {
     private final Set<Integer> known = new HashSet<>();
     private boolean first = true;
     private Ringtone ring;
+    private MediaPlayer mp;
     private final Handler ui = new Handler(Looper.getMainLooper());
     private volatile boolean ringing = false;
+    private volatile long testUntil = 0;
 
     @Override
     public IBinder onBind(Intent i) { return null; }
@@ -50,6 +55,8 @@ public class OrderAlertService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         makeChannels();
+        final boolean test = intent != null && "TEST".equals(intent.getAction());
+        final boolean stopTest = intent != null && "STOPTEST".equals(intent.getAction());
         Notification n = new Notification.Builder(this, CH_ONGOING)
                 .setSmallIcon(android.R.drawable.ic_dialog_info)
                 .setContentTitle("BPK: waiting for online orders")
@@ -74,6 +81,8 @@ public class OrderAlertService extends Service {
             });
             worker.start();
         }
+        if (stopTest) { testUntil = 0; stopRing(); }
+        else if (test) { testUntil = System.currentTimeMillis() + 12000; startRing(); ui.postDelayed(new Runnable() { @Override public void run() { stopRing(); } }, 12000); }
         return START_STICKY;
     }
 
@@ -106,7 +115,7 @@ public class OrderAlertService extends Service {
         nm.createNotificationChannel(oc);
     }
 
-    private void newOrder(int count, String title, String text) {
+    private void newOrder(int count) {
         // 1) turn the screen on
         try {
             PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
@@ -120,8 +129,8 @@ public class OrderAlertService extends Service {
         PendingIntent open = openApp();
         Notification n = new Notification.Builder(this, CH_ORDERS)
                 .setSmallIcon(android.R.drawable.ic_dialog_alert)
-                .setContentTitle(title != null ? title : "NEW ONLINE ORDER")
-                .setContentText(text != null ? text : count > 1 ? count + " online orders are waiting. Tap to open." : "An online order is waiting. Tap to open.")
+                .setContentTitle("NEW ONLINE ORDER")
+                .setContentText(count > 1 ? count + " online orders are waiting. Tap to open." : "An online order is waiting. Tap to open.")
                 .setCategory(Notification.CATEGORY_ALARM)
                 .setContentIntent(open)
                 .setFullScreenIntent(open, true)
@@ -140,6 +149,27 @@ public class OrderAlertService extends Service {
         ui.post(new Runnable() {
             @Override
             public void run() {
+                // our own sound (res/raw/bpk_order), on the ALARM volume, pushed to maximum so it can be heard from far away
+                try {
+                    AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+                    if (am != null) am.setStreamVolume(AudioManager.STREAM_ALARM, am.getStreamMaxVolume(AudioManager.STREAM_ALARM), 0);
+                } catch (Exception ignored) { }
+                try {
+                    AssetFileDescriptor fd = getResources().openRawResourceFd(R.raw.bpk_order);
+                    mp = new MediaPlayer();
+                    mp.setAudioAttributes(new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ALARM).setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build());
+                    mp.setDataSource(fd.getFileDescriptor(), fd.getStartOffset(), fd.getLength());
+                    fd.close();
+                    mp.setLooping(true);
+                    mp.setVolume(1f, 1f);
+                    mp.prepare();
+                    mp.start();
+                    return;
+                } catch (Exception e) {
+                    try { if (mp != null) { mp.release(); } } catch (Exception ignored) { }
+                    mp = null;
+                }
+                // fallback: the phone's own alarm sound
                 try {
                     Uri u = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
                     if (u == null) u = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
@@ -159,14 +189,17 @@ public class OrderAlertService extends Service {
         ringing = false;
         ui.post(new Runnable() {
             @Override
-            public void run() { try { if (ring != null) { ring.stop(); ring = null; } } catch (Exception ignored) { } }
+            public void run() {
+                try { if (mp != null) { mp.stop(); mp.release(); mp = null; } } catch (Exception ignored) { mp = null; }
+                try { if (ring != null) { ring.stop(); ring = null; } } catch (Exception ignored) { }
+            }
         });
     }
 
     private void poll() throws Exception {
         SharedPreferences prefs = getSharedPreferences("bpk", MODE_PRIVATE);
         String token = prefs.getString("alert_token", "");
-        if (token.isEmpty()) { stopSelf(); return; }
+        if (token.isEmpty()) { if (System.currentTimeMillis() < testUntil) return; stopSelf(); return; }
         String base = prefs.getString("server", "https://mybpk.com");
         HttpURLConnection c = (HttpURLConnection) new URL(base + "/api/online/ping").openConnection();
         c.setConnectTimeout(8000);
@@ -180,15 +213,12 @@ public class OrderAlertService extends Service {
         String line;
         while ((line = br.readLine()) != null) sb.append(line);
         br.close();
-        JSONObject jo = new JSONObject(sb.toString());
-        JSONArray arr = jo.getJSONArray("ids");
-        String title = jo.optString("title", null);
-        String text = jo.optString("text", null);
+        JSONArray arr = new JSONObject(sb.toString()).getJSONArray("ids");
         Set<Integer> now = new HashSet<>();
         boolean fresh = false;
         for (int i = 0; i < arr.length(); i++) { int id = arr.getInt(i); now.add(id); if (!known.contains(id)) fresh = true; }
-        if (fresh && !first && !MainActivity.inFront) newOrder(now.size(), title, text);
-        if (now.isEmpty() || MainActivity.inFront) { stopRing(); if (now.isEmpty()) ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel(12); }
+        if (fresh && !first && !MainActivity.inFront) newOrder(now.size());
+        if ((now.isEmpty() || MainActivity.inFront) && System.currentTimeMillis() > testUntil) { stopRing(); if (now.isEmpty()) ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel(12); }
         known.clear();
         known.addAll(now);
         first = false;

@@ -301,6 +301,24 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
+        public void testAlarm() {
+            if (!trustedCaller()) return;
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() { try { Intent i = new Intent(MainActivity.this, OrderAlertService.class); i.setAction("TEST"); startForegroundService(i); } catch (Exception ignored) { } }
+            });
+        }
+
+        @JavascriptInterface
+        public void stopTestAlarm() {
+            if (!trustedCaller()) return;
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() { try { Intent i = new Intent(MainActivity.this, OrderAlertService.class); i.setAction("STOPTEST"); startForegroundService(i); } catch (Exception ignored) { } }
+            });
+        }
+
+        @JavascriptInterface
         public void stopAlerts() {
             if (!trustedCaller()) return;
             prefs.edit().remove("alert_token").apply();

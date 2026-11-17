@@ -41,7 +41,7 @@ public class OrderAlertService extends Service {
     private volatile boolean running = false;
     private Thread worker;
     private PowerManager.WakeLock cpu;
-    private final Set<Integer> known = new HashSet<>();
+    private final Set<String> known = new HashSet<>();
     private boolean first = true;
     private Ringtone ring;
     private MediaPlayer mp;
@@ -59,8 +59,8 @@ public class OrderAlertService extends Service {
         final boolean stopTest = intent != null && "STOPTEST".equals(intent.getAction());
         Notification n = new Notification.Builder(this, CH_ONGOING)
                 .setSmallIcon(android.R.drawable.ic_dialog_info)
-                .setContentTitle("BPK: waiting for online orders")
-                .setContentText("The tablet will wake up when an order comes in.")
+                .setContentTitle("BPK: waiting for orders and calls")
+                .setContentText("The tablet will wake up for new orders, kitchen service and customer calls.")
                 .setContentIntent(openApp())
                 .setOngoing(true)
                 .build();
@@ -115,7 +115,7 @@ public class OrderAlertService extends Service {
         nm.createNotificationChannel(oc);
     }
 
-    private void newOrder(int count) {
+    private void newOrder(String title, String text) {
         // 1) turn the screen on
         try {
             PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
@@ -129,8 +129,8 @@ public class OrderAlertService extends Service {
         PendingIntent open = openApp();
         Notification n = new Notification.Builder(this, CH_ORDERS)
                 .setSmallIcon(android.R.drawable.ic_dialog_alert)
-                .setContentTitle("NEW ONLINE ORDER")
-                .setContentText(count > 1 ? count + " online orders are waiting. Tap to open." : "An online order is waiting. Tap to open.")
+                .setContentTitle(title)
+                .setContentText(text)
                 .setCategory(Notification.CATEGORY_ALARM)
                 .setContentIntent(open)
                 .setFullScreenIntent(open, true)
@@ -213,11 +213,25 @@ public class OrderAlertService extends Service {
         String line;
         while ((line = br.readLine()) != null) sb.append(line);
         br.close();
-        JSONArray arr = new JSONObject(sb.toString()).getJSONArray("ids");
-        Set<Integer> now = new HashSet<>();
+        JSONObject root = new JSONObject(sb.toString());
+        JSONArray arr = root.getJSONArray("ids");
+        Set<String> now = new HashSet<>();
+        String title = "NEW ONLINE ORDER", text = "";
         boolean fresh = false;
-        for (int i = 0; i < arr.length(); i++) { int id = arr.getInt(i); now.add(id); if (!known.contains(id)) fresh = true; }
-        if (fresh && !first && !MainActivity.inFront) newOrder(now.size());
+        int fo = 0;
+        for (int i = 0; i < arr.length(); i++) { String k = "o" + arr.getInt(i); now.add(k); if (!known.contains(k)) { fresh = true; fo++; } }
+        if (fo > 0) text = arr.length() > 1 ? arr.length() + " online orders are waiting. Tap to open." : "An online order is waiting. Tap to open.";
+        // kitchen service, customer calls, bill and GCash requests (older servers do not send 'alerts')
+        JSONArray al = root.optJSONArray("alerts");
+        if (al != null) {
+            for (int i = 0; i < al.length(); i++) {
+                JSONObject a = al.getJSONObject(i); String k = a.optString("key", "");
+                if (k.isEmpty()) continue;
+                now.add(k);
+                if (!known.contains(k)) { fresh = true; title = a.optString("title", "BPK"); text = a.optString("text", "Tap to open."); }
+            }
+        }
+        if (fresh && !first && !MainActivity.inFront) newOrder(title, text);
         if ((now.isEmpty() || MainActivity.inFront) && System.currentTimeMillis() > testUntil) { stopRing(); if (now.isEmpty()) ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel(12); }
         known.clear();
         known.addAll(now);

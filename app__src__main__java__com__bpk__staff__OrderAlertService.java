@@ -122,7 +122,7 @@ public class OrderAlertService extends Service {
             if (pm != null) {
                 @SuppressWarnings("deprecation")
                 PowerManager.WakeLock w = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.ON_AFTER_RELEASE, "bpkstaff:wake");
-                w.acquire(15000);
+                int mins = getSharedPreferences("bpk", MODE_PRIVATE).getInt("awake_min", 2); w.acquire(Math.max(1, mins) * 60000L);   // screen on for the Admin-chosen minutes, then it may sleep again
             }
         } catch (Exception ignored) { }
         // 2) notification that opens the app over the lock screen

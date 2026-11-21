@@ -59,7 +59,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        // The screen is no longer forced on: it sleeps by itself and the order alert wakes it for 2 minutes.
         if (Build.VERSION.SDK_INT >= 27) { setShowWhenLocked(true); setTurnScreenOn(true); }
         prefs = getSharedPreferences("bpk", MODE_PRIVATE);
 
@@ -208,10 +208,7 @@ public class MainActivity extends Activity {
         } catch (Exception ignored) { }
     }
 
-    private void sendToPrinter(String address, byte[] data) throws Exception { sendToPrinter(address, data, 0); }
-
-    // chunk > 0: write in small pieces (label printers have a small buffer)
-    private void sendToPrinter(String address, byte[] data, int chunk) throws Exception {
+    private void sendToPrinter(String address, byte[] data) throws Exception {
         BluetoothAdapter ad = BluetoothAdapter.getDefaultAdapter();
         if (ad == null) throw new Exception("This device has no Bluetooth.");
         if (!ad.isEnabled()) throw new Exception("Bluetooth is turned off.");
@@ -228,15 +225,9 @@ public class MainActivity extends Activity {
                 sock.connect();
             }
             OutputStream os = sock.getOutputStream();
-            if (chunk > 0) {
-                for (int off = 0; off < data.length; off += chunk) { os.write(data, off, Math.min(chunk, data.length - off)); os.flush(); Thread.sleep(15); }
-                os.flush();
-                Thread.sleep(800 + data.length / 40);
-            } else {
-                os.write(data);
-                os.flush();
-                Thread.sleep(500 + data.length / 10);
-            }
+            os.write(data);
+            os.flush();
+            Thread.sleep(500 + data.length / 10);
         } finally {
             if (sock != null) {
                 try { sock.close(); } catch (IOException ignored) { }
@@ -283,6 +274,25 @@ public class MainActivity extends Activity {
     // ---- bridge exposed to the web pages -------------------------------
 
     private final class Bridge {
+        @JavascriptInterface
+        public void setAwakeMinutes(int m) {
+            if (!trustedCaller()) return;
+            prefs.edit().putInt("awake_min", Math.max(0, Math.min(60, m))).apply();
+        }
+
+        // The web app tells us when the screen may sleep (outside service hours, or logged out).
+        @JavascriptInterface
+        public void setKeepAwake(final boolean on) {
+            if (!trustedCaller()) return;
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (on) getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                    else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                }
+            });
+        }
+
         @JavascriptInterface
         public void startAlerts(String token) {
             if (!trustedCaller() || token == null || token.length() < 20) return;
@@ -479,16 +489,6 @@ public class MainActivity extends Activity {
                     try {
                         EscPos p = new EscPos(paperMm >= 80 ? 80 : 57);
                         JSONArray ops = new JSONArray(json);
-                        if (ops.length() > 0 && "raw".equals(ops.getJSONObject(0).optString("t"))) {   // sticker label: the server already made the printer's own commands (TSPL)
-                            java.io.ByteArrayOutputStream bo = new java.io.ByteArrayOutputStream();
-                            for (int i = 0; i < ops.length(); i++) {
-                                JSONObject o = ops.getJSONObject(i);
-                                if ("raw".equals(o.optString("t"))) bo.write(android.util.Base64.decode(o.optString("d"), android.util.Base64.DEFAULT));
-                            }
-                            sendToPrinter(address.toUpperCase(Locale.US), bo.toByteArray(), 1024);
-                            emit("printjob", true, jobId + "|");
-                            return;
-                        }
                         for (int i = 0; i < ops.length(); i++) {
                             JSONObject o = ops.getJSONObject(i);
                             String t = o.optString("t");

@@ -59,7 +59,8 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // The screen is no longer forced on: it sleeps by itself and the order alert wakes it for 2 minutes.
+        // The screen starts ON and stays on until the staff page says the quiet minutes have passed (setKeepAwake(false)); if the page never answers, the tablet simply stays on instead of sleeping after a few seconds. The order alert wakes it again for the Admin-chosen minutes.
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         if (Build.VERSION.SDK_INT >= 27) { setShowWhenLocked(true); setTurnScreenOn(true); }
         prefs = getSharedPreferences("bpk", MODE_PRIVATE);
 

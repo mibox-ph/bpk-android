@@ -55,6 +55,7 @@ public class MainActivity extends Activity {
     private PermissionRequest pendingMic;
     private static final int REQ_MIC = 77;
     private static final int REQ_SMS = 78;
+    private static final int REQ_SMS_IN = 79;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -140,6 +141,7 @@ public class MainActivity extends Activity {
     @Override
     public void onRequestPermissionsResult(int code, String[] perms, int[] results) {
         super.onRequestPermissionsResult(code, perms, results);
+        if (code == REQ_SMS_IN) return;
         if (code == REQ_SMS) {
             emit("sms_permission", results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED, "");
             return;
@@ -375,6 +377,31 @@ public class MainActivity extends Activity {
                 @Override
                 public void run() { requestPermissions(new String[]{Manifest.permission.SEND_SMS}, REQ_SMS); }
             });
+        }
+
+        // ---- texts that customers send to this tablet's number ----
+        @JavascriptInterface
+        public boolean smsInReady() {
+            return trustedCaller() && checkSelfPermission(Manifest.permission.RECEIVE_SMS) == PackageManager.PERMISSION_GRANTED;
+        }
+
+        @JavascriptInterface
+        public void smsInRequest() {
+            if (!trustedCaller()) return;
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() { requestPermissions(new String[]{Manifest.permission.RECEIVE_SMS}, REQ_SMS_IN); }
+            });
+        }
+
+        @JavascriptInterface
+        public String smsInboxGet() {
+            return trustedCaller() ? SmsInReceiver.peek(MainActivity.this) : "[]";
+        }
+
+        @JavascriptInterface
+        public void smsInboxAck(int n) {
+            if (trustedCaller()) SmsInReceiver.drop(MainActivity.this, n);
         }
 
         @JavascriptInterface
